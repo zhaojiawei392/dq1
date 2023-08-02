@@ -1,5 +1,6 @@
 #pragma once
 #include "Macro.h"
+#include "Complex.h"
 
 namespace dq1
 {
@@ -43,7 +44,10 @@ public:
 
 
 protected:
-    Scalar_ w_, x_, y_, z_;
+    Re<Scalar_> w_;
+    Imx<Scalar_> x_;
+    Imy<Scalar_> y_;
+    Imz<Scalar_> z_;
 
 };
 
