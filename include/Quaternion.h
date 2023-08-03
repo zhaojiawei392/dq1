@@ -8,6 +8,10 @@ namespace dq1
 template<typename Scalar_>
 class Quaternion{
 public:
+    Quaternion()=default noexcept;
+    Quaternion(const Quaternion& quaternion)=default noexcept;
+    Quaternion(Quaternion& quaternion)=default noexcept;
+    
     Quaternion(const Evec<Scalar_, 3>& xyz);
     Quaternion(const Evec<Scalar_, 4>& wxyz);
     Quaternion(Evec<Scalar_, 3>&& xyz);
