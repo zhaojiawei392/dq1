@@ -3,7 +3,11 @@
 
 namespace dq1
 {
+template<typename Scalar_> class AbstractComplex;
+template<typename Scalar_> class AbstractReal;
+template<typename Scalar_> class AbstractImaginary;
 template<typename Scalar_> class Re;
+template<typename Scalar_> class Im;
 template<typename Scalar_> class Imx;
 template<typename Scalar_> class Imy;
 template<typename Scalar_> class Imz;
@@ -14,92 +18,89 @@ public:
     AbstractComplex() noexcept;
     AbstractComplex(const Scalar_& sca) noexcept;
     AbstractComplex(Scalar_&& sca) noexcept;
+    virtual ~AbstractComplex() noexcept=0;
 
     AbstractComplex& operator=(const AbstractComplex& ac) noexcept;
     AbstractComplex& operator=(AbstractComplex&& ac) noexcept;
 
-    virtual operator Scalar_() const noexcept =0;
+    operator Scalar_() const noexcept;
+    operator std::string() const noexcept;
 
-    virtual ~AbstractComplex() noexcept;
 protected:
     Scalar_ scalar_;
 };
 
-template<typename Scalar_> class AbstractReal : public AbstractComplex
+template<typename Scalar_> class AbstractReal : public AbstractComplex<Scalar_>
 {
 public:
     AbstractReal() noexcept;
     AbstractReal(const Scalar_& sca) noexcept;
     AbstractReal(Scalar_&& sca) noexcept;
+    virtual ~AbstractReal() noexcept=0;
 
-    AbstractReal& operator=(const AbstractReal& ar) noexcept;
-    AbstractReal& operator=(AbstractReal&& ar) noexcept;
+    AbstractReal<Scalar_>& operator=(const AbstractReal<Scalar_>& ar) noexcept;
+    AbstractReal<Scalar_>& operator=(AbstractReal<Scalar_>&& ar) noexcept;
 
-    virtual operator Scalar_() const noexcept=0;
-
-    virtual ~AbstractReal() noexcept;
+    AbstractReal<Scalar_>      operator+(const AbstractReal<Scalar_>& ar) noexcept;
+    AbstractReal<Scalar_>      operator-(const AbstractReal<Scalar_>& ar) noexcept;
+    AbstractReal<Scalar_>      operator*(const AbstractReal<Scalar_>& ar) noexcept;
+    AbstractImaginary<Scalar_> operator*(const AbstractImaginary<Scalar_>& ai) noexcept;
+    AbstractReal<Scalar_>      operator/(const AbstractReal<Scalar_>& ar) noexcept;
+    AbstractImaginary<Scalar_> operator/(const AbstractImaginary<Scalar_>& ai) noexcept;
 };
 
-template<typename Scalar_> class AbstractImaginary: public AbstractComplex
+template<typename Scalar_> class AbstractImaginary: public AbstractComplex<Scalar_>
 {
 public:
     AbstractImaginary() noexcept;
     AbstractImaginary(const Scalar_& sca) noexcept;
     AbstractImaginary(Scalar_&& sca) noexcept;
+    virtual ~AbstractImaginary() noexcept=0;
 
-    AbstractImaginary& operator=(const AbstractImaginary& ai) noexcept;
-    AbstractImaginary& operator=(AbstractImaginary&& ai) noexcept;
+    AbstractImaginary<Scalar_>& operator=(const AbstractImaginary<Scalar_>& ai) noexcept;
+    AbstractImaginary<Scalar_>& operator=(AbstractImaginary<Scalar_>&& ai) noexcept;
 
-    virtual operator Scalar_() const noexcept=0;
 
-    virtual ~AbstractImaginary() noexcept;
+    AbstractImaginary<Scalar_> operator+(const AbstractImaginary<Scalar_>& ai) noexcept;
+    AbstractImaginary<Scalar_> operator-(const AbstractImaginary<Scalar_>& ai) noexcept;
+    AbstractReal<Scalar_>      operator*(const AbstractImaginary<Scalar_>& ai) noexcept;
+    AbstractImaginary<Scalar_> operator*(const AbstractReal<Scalar_>& ar) noexcept;
+    AbstractImaginary<Scalar_> operator/(const AbstractReal<Scalar_>& ar) noexcept;
+    AbstractReal<Scalar_>      operator/(const AbstractImaginary<Scalar_>& ai) noexcept;
+
 };
 
-template<typename Scalar_> class Re : public AbstractReal
+template<typename Scalar_> class Re : public AbstractReal<Scalar_>
 {
 public:
     Re() noexcept;
     Re(const Scalar_& sca) noexcept;
     Re(Scalar_&& sca) noexcept;
+    ~Re() noexcept;
 
     Re& operator=(const Re& re) noexcept;
     Re& operator=(Re&& re) noexcept;
-
-    Re operator+(const Re& re) noexcept;
-    Re operator-(const Re& re) noexcept;
-    Re operator*(const Re& re) noexcept;
-    Re operator/(const Re& re) noexcept;
-
-    virtual operator Scalar_() const noexcept;
-
-    virtual ~Re() noexcept;
 };
 
-template<typename Scalar_> class Im : public AbstractImaginary
+template<typename Scalar_> class Im : public AbstractImaginary<Scalar_>
 {
 public:
     Im() noexcept;
     Im(const Scalar_& sca) noexcept;
     Im(Scalar_&& sca) noexcept;
+    ~Im() noexcept;
 
     Im& operator=(const Im& im) noexcept;
     Im& operator=(Im&& im) noexcept;
-
-    Im operator+(const Im& im) noexcept;
-    Im operator-(const Im& im) noexcept;
-    Re operator*(const Im& im) noexcept;
-
-    virtual operator Scalar_() const noexcept;
-
-    virtual ~Im() noexcept;
 };
 
-template<typename Scalar_> class Imx : public Im
+template<typename Scalar_> class Imx : public Im<Scalar_>
 {
 public:
     Imx() noexcept;
     Imx(const Scalar_& sca) noexcept;
     Imx(Scalar_&& sca) noexcept;
+    ~Imx() noexcept;
 
     Imx& operator=(const Imx& imx) noexcept;
     Imx& operator=(Imx&& imx) noexcept;
@@ -107,17 +108,15 @@ public:
     Imy operator*(const Imz& imz) noexcept;
     Imz operator*(const Imy& imy) noexcept;
 
-    virtual operator Scalar_() const noexcept;
-
-    virtual ~Imx() noexcept;
 };
 
-template<typename Scalar_> class Imy : public Im
+template<typename Scalar_> class Imy : public Im<Scalar_>
 {
 public:
     Imy() noexcept;
     Imy(const Scalar_& sca) noexcept;
     Imy(Scalar_&& sca) noexcept;
+    ~Imy() noexcept;
 
     Imy& operator=(const Imy& imy) noexcept;
     Imy& operator=(Imy&& imy) noexcept;
@@ -125,17 +124,15 @@ public:
     Imz operator*(const Imx& imx) noexcept;
     Imx operator*(const Imz& imz) noexcept;
 
-    virtual operator Scalar_() const noexcept;
-
-    virtual ~Imy() noexcept;
 };
 
-template<typename Scalar_> class Imz : public Im
+template<typename Scalar_> class Imz : public Im<Scalar_>
 {
 public:
     Imz() noexcept;
     Imz(const Scalar_& sca) noexcept;
     Imz(Scalar_&& sca) noexcept;
+    ~Imz() noexcept;
 
     Imz& operator=(const Imz& imz) noexcept;
     Imz& operator=(Imz&& imz) noexcept;
@@ -143,9 +140,6 @@ public:
     Imx operator*(const Imy& imy) noexcept;
     Imy operator*(const Imx& imx) noexcept;
 
-    virtual operator Scalar_() const noexcept;
-
-    virtual ~Imz() noexcept;
 };
 
 }
