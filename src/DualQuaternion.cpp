@@ -1,4 +1,4 @@
-#include "DQ.h"
+#include "DualQuaternion.h"
 
 
 namespace dq1

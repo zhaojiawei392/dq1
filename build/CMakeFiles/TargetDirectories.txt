@@ -1,3 +1,0 @@
-/home/kai/Projects/DualQuaternion/build/CMakeFiles/test1.dir
-/home/kai/Projects/DualQuaternion/build/CMakeFiles/edit_cache.dir
-/home/kai/Projects/DualQuaternion/build/CMakeFiles/rebuild_cache.dir
