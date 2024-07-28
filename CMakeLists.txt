@@ -12,3 +12,7 @@ add_executable(test1
     test1.cpp
     src/Quaternion.cpp
 )
+
+add_executable(test2 
+    test2.cpp
+)
