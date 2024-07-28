@@ -13,15 +13,9 @@ void test1(DQ dq)
 std::cout<< dq.to_string() << "\n";
 }
 
-void test_multiply(DQ dq1, DQ dq2)
-{
-    test1(dq1); test1(dq2);
-    test1(dq1 * dq2);
-}
 
 void test2(DQ dq)
 {        
-    test1(dq);
     std::cout << "dq norm: " << dq.norm() << "\n";  
     double exp0 = std::exp(dq.w());
     DQ exp1 = DQ(cos(dq.x()), sin(dq.x()), 0 ,0);
@@ -54,40 +48,38 @@ void test3(DQ dq)
     std::cout << "dq rot axis: " << dq.rotation_axis().to_string() << "\n";
 }
 
-void test4(const dq1::Tvec3d& vec)
+void test4(const dq1::Vec3d& vec)
 {
     std::cout <<vec;
 }
 
-void test4(const dq1::Tvec4d& vec)
+void test4(const dq1::Vec4d& vec)
 {
-    std::cout <<vec;}
+    std::cout <<vec;
+}
 
 int main()
 {
     // test1(3,0,0,0);
     // test1(3*cos(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34) );
 
-    test2(DQ(1,2,3,4));
-    test2(DQ(5,6,7,8));
-    test2(DQ(0,0,0.7854,0));
-    test_string(2.*DQ(1));
-
+ 
     std::cout << DQ(1);
 
 
     // test3(DQ(1,2,3,4));
-    // test1(DQ(cos(2.77438 * 0.5), sin(2.77438 * 0.5) * dq1::Tvec3<double>(0.371390676354103721, 0.557086014531155582, 0.742781352708207443)) * 5.47723);
+    // test1(DQ(cos(2.77438 * 0.5), sin(2.77438 * 0.5) * dq1::Vec3<double>(0.371390676354103721, 0.557086014531155582, 0.742781352708207443)) * 5.47723);
 
-    // dq1::Tvec3d vec1;
+    // dq1::Vec3d vec1;
     // vec1 << 1,2,3;
-    // dq1::Tvec4d vec2;
+    // dq1::Vec4d vec2;
     // vec2 << 4,5,6,7;
     
     // DQ dq1(vec1);
     // DQ dq2(vec2);
-    // DQ dq3((dq1::Tvec4d()<<4,3,2,1).finished());
+    // DQ dq3((dq1::Vec4d()<<4,3,2,1).finished());
 
     // test4(vec1);
     // test4(vec2);
+    return 0;
 }

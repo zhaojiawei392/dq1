@@ -4,6 +4,7 @@
 using DQ = dq1::Quaternion<double>;
 using pdq = dq1::PureQuaternion<double>;
 using udq = dq1::UnitQuaternion<double>;
+using updq = dq1::UnitPureQuaternion<double>;
 
 void test_string(std::string str)
 {
@@ -15,15 +16,9 @@ void test1(DQ dq)
 std::cout<< dq.to_string() << "\n";
 }
 
-void test_multiply(DQ dq1, DQ dq2)
-{
-    test1(dq1); test1(dq2);
-    test1(dq1 * dq2);
-}
 
 void test2(DQ dq)
 {        
-    test1(dq);
     std::cout << "dq norm: " << dq.norm() << "\n";  
     double exp0 = std::exp(dq.w());
     DQ exp1 = DQ(cos(dq.x()), sin(dq.x()), 0 ,0);
@@ -56,12 +51,12 @@ void test3(DQ dq)
     std::cout << "dq rot axis: " << dq.rotation_axis().to_string() << "\n";
 }
 
-void test4(const dq1::Tvec3d& vec)
+void test4(const dq1::Vec3d& vec)
 {
     std::cout <<vec;
 }
 
-void test4(const dq1::Tvec4d& vec)
+void test4(const dq1::Vec4d& vec)
 {
     std::cout <<vec;}
 
@@ -74,24 +69,41 @@ int main()
 {
     // test1(3,0,0,0);
     // test1(3*cos(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34) );
-    DQ a0(1,2,3,4);
-    pdq a;
-    pdq b(a0);
-    pdq c = pdq( a + b);
-    DQ d = c * b;
-    DQ e = a0 * c;
-    DQ f = c * a0;
-    pdq g = pdq(6. * f);
+    // DQ a0(1,2,3,4);
+    // pdq a;
+    // pdq b(a0);
+    // pdq c = pdq( a + b);
+    // DQ d = c * b;
+    // DQ e = a0 * c;
+    // DQ f = c * a0;
+    // pdq g = pdq(6. * f);
 
     
-    std::cout << a << b << c << d;
+    // std::cout << a << b << c << d;
 
-    udq aa;
-    udq cc(3,4,5,6);
-    udq bb(DQ(1.,2.,3.,4.));
-    udq dd = udq(aa + cc);
-    udq ee = udq(dd * bb);
-    std::cout << aa << bb << cc << dd << ee;
+    // udq aa;
+    // udq cc(3,4,5,6);
+    // udq bb(DQ(1.,2.,3.,4.));
+    // udq dd = udq(aa + cc);
+    // udq ee = udq(dd * bb);
+    // std::cout << aa << bb << cc << dd << ee;
+
+    DQ a; DQ aa(dq1::Vec4d({5,6,7,8})); 
+    pdq b; pdq bb(dq1::Vec3d({9,80,7}));
+    udq c(1,2,3,4); udq cc(dq1::Vec4d({8,6,1,23})); udq ccc(bb); 
+    updq d(1.,2.,3.); updq dd(dq1::Vec3d({9,4,5})); updq ddd(cc);
+    std::cout << a << "\n"
+                << aa << "\n"
+                << b << "\n"
+                << bb << "\n"
+                << c << "\n"
+                << cc << "\n"
+                << ccc << "\n"
+                << d << "\n"
+                << dd << "\n"
+                << ddd << "\n";
+
+
 
 
 
