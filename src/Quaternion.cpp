@@ -320,23 +320,6 @@ template<typename Scalar_>
 Quaternion<Scalar_>& Quaternion<Scalar_>::operator/=(const Scalar_& scalar) noexcept {vals_ /= scalar; return *this;}
 
 /**
- * @brief Converts the quaternion to a string representation.
- * 
- * This conversion operator formats the quaternion components into a string with
- * fixed-point notation and a specified precision. The format used is "w + x î + y ĵ + z k̂".
- * 
- * @return A string representing the quaternion in the format "w + x î + y ĵ + z k̂".
- */
-template<typename Scalar_>
-Quaternion<Scalar_>::operator std::string() const
-{
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(PRINT_PRECISION); // Set fixed-point notation and precision
-    oss << vals_[0] << " + " << vals_[1] << " î + " << vals_[2] << " ĵ + " << vals_[3] << " k̂ ";
-    return oss.str();
-}   
-
-/**
  * @brief Calculates the sum of the calling quaternion and another quaternion.
  * 
  * This function computes the sum of the calling quaternion and another quaternion
@@ -465,6 +448,23 @@ bool Quaternion<Scalar_>::operator==(const Quaternion& other) const noexcept {re
  */
 template<typename Scalar_>
 bool Quaternion<Scalar_>::operator!=(const Quaternion& other) const noexcept {return vals_ != other.vals_;}
+
+/**
+ * @brief Converts the quaternion to a string representation.
+ * 
+ * This conversion operator formats the quaternion components into a string with
+ * fixed-point notation and a specified precision. The format used is "w + x î + y ĵ + z k̂".
+ * 
+ * @return A string representing the quaternion in the format "w + x î + y ĵ + z k̂".
+ */
+template<typename Scalar_>
+Quaternion<Scalar_>::operator std::string() const
+{
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(PRINT_PRECISION); // Set fixed-point notation and precision
+    oss << vals_[0] << " + " << vals_[1] << " î + " << vals_[2] << " ĵ + " << vals_[3] << " k̂ ";
+    return oss.str();
+}   
 
 /**
  * @brief Calculates the norm (magnitude) of the quaternion.

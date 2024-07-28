@@ -64,8 +64,7 @@ public:
     Quaternion& operator*=(const Quaternion& other) noexcept;
     Quaternion& operator*=(const Scalar_& scalar) noexcept;
     Quaternion& operator/=(const Scalar_& scalar) noexcept;
-    operator std::string() const;
-
+    Quaternion& normalize();
 
     // const operators
 
@@ -80,6 +79,7 @@ public:
     Quaternion operator-() const noexcept;
     bool operator==(const Quaternion& other) const noexcept;
     bool operator!=(const Quaternion& other) const noexcept; 
+    operator std::string() const;
 
     // service functions
 
@@ -96,8 +96,6 @@ public:
     Mat4<Scalar_> hamiplus() const noexcept;
     Mat4<Scalar_> haminus() const noexcept;
     std::string to_string() const;
-
-    // O(1) get functions
 
     Scalar_ w() const noexcept;
     Scalar_ x() const noexcept;
