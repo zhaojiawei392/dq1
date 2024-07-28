@@ -71,7 +71,7 @@ int main()
     test2(DQ(1,2,3,4));
     test2(DQ(5,6,7,8));
     test2(DQ(0,0,0.7854,0));
-    test_string(DQ(1));
+    test_string(2.*DQ(1));
 
     std::cout << DQ(1);
 
