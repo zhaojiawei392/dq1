@@ -1,33 +1,11 @@
 #pragma once
+#include "Macro.h"
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 
 namespace dq1
 {
-#define PRINT_PRECISION 18
-#define OMIT_THRESHOLD 0.00000000001
 
-template<typename Scalar_, int size>
-using Vec=Eigen::Matrix<Scalar_, size, 1>;
-template<typename Scalar_>
-using Vec3=Eigen::Matrix<Scalar_, 3, 1>;
-using Vec3d=Eigen::Matrix<double, 3, 1>;
-template<typename Scalar_>
-using Vec4=Eigen::Matrix<Scalar_, 4, 1>;
-using Vec4d=Eigen::Matrix<double, 4, 1>;
-template<typename Scalar_>
-using Vecx=Eigen::Matrix<Scalar_, -1, 1>;
-
-template<typename Scalar_, int rows_, int cols_>
-using Mat=Eigen::Matrix<Scalar_, rows_, cols_>;
-template<typename Scalar_>
-using Mat3=Eigen::Matrix<Scalar_, 3, 3>;
-using Mat3d=Eigen::Matrix<double, 3, 3>;
-template<typename Scalar_>
-using Mat4=Eigen::Matrix<Scalar_, 4, 4>;
-using Mat4d=Eigen::Matrix<double, 4, 4>;
-template<typename Scalar_>
-using Matx=Eigen::Matrix<Scalar_, -1, -1>;
 template<typename Scalar_>
 class Quaternion;
 template<typename Scalar_>
@@ -42,6 +20,7 @@ class Quaternion{
 protected:
     Vec4<Scalar_> vals_;
 public:
+
     // Constructors and Assignments
 
              Quaternion();
@@ -57,7 +36,7 @@ public:
     Quaternion& operator=(const Quaternion& other)=default;
     Quaternion& operator=(Quaternion&& other)=default;
 
-    // non-const operators
+    // mutable operators
 
     Quaternion& operator+=(const Quaternion& other) noexcept;
     Quaternion& operator-=(const Quaternion& other) noexcept;
@@ -81,7 +60,7 @@ public:
     bool operator!=(const Quaternion& other) const noexcept; 
     operator std::string() const;
 
-    // service functions
+    // service functions const
 
     Scalar_ norm() const noexcept;
     Scalar_ rotation_angle() const noexcept;
@@ -104,7 +83,7 @@ public:
     Vec3<Scalar_> vec3() const noexcept;
     Vec4<Scalar_> vec4() const noexcept;
 
-    // Friends
+    // Friends "const"
     
     template<typename qScalar_>
     friend Quaternion<qScalar_> operator*(const qScalar_& scalar, const Quaternion<qScalar_>& quaternion);
@@ -138,6 +117,8 @@ public:
             virtual ~PureQuaternion()=default;
     PureQuaternion& operator=(const PureQuaternion& other)=default;
     PureQuaternion& operator=(PureQuaternion&& other)=default;
+
+    // operators const
 
     bool operator==(const PureQuaternion& other) const noexcept;
     bool operator!=(const PureQuaternion& other) const noexcept; 

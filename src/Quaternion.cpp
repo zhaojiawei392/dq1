@@ -19,7 +19,7 @@ namespace dq1
  */
 template<typename qScalar_>
 Quaternion<qScalar_> operator*(const qScalar_& scalar, const Quaternion<qScalar_>& quaternion) {
-    return Quaternion<qScalar_>(quaternion) *= scalar;
+    return quaternion * scalar;
 }
 
 /**
@@ -33,7 +33,7 @@ Quaternion<qScalar_> operator*(const qScalar_& scalar, const Quaternion<qScalar_
  */
 template<typename qScalar_>
 Quaternion<qScalar_> operator*(const qScalar_& scalar, Quaternion<qScalar_>&& quaternion) {
-    return std::move(quaternion) *= scalar;
+    return std::move(quaternion *= scalar);
 }
 
 /**
@@ -247,14 +247,22 @@ Quaternion<Scalar_>::Quaternion(const Scalar_& w, const Scalar_& x, const Scalar
  * @param norm The norm of the quaternion.
  * @param rotation_angle The angle of rotation in radians.
  * @param rotation_vec The 3-element vector representing the axis of rotation.
- * @throws std::range_error if the size of the rotation vector is not 3.
+ * @throws std::runtime_error if the rotation vector is not unit 3-dimensional.
  */
 template<typename Scalar_>
 Quaternion<Scalar_>::Quaternion(const Vecx<Scalar_>& rotation_vec, const Scalar_& rotation_angle, const Scalar_& norm)
 {
-    if (rotation_vec.size() != 3)
-        throw std::range_error("Error in constructor Quaternion(const Scalar_& norm, const Scalar_& rotation_angle, const Vecx<Scalar_>& rotation_axis) with a rotation_axis size of " + std::to_string(rotation_vec.size()) + ", which should be 3.");
-    vals_ << cos(0.5 * rotation_angle), 
+    if (rotation_vec.size() != 3 || rotation_vec.norm() != 1){
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(PRINT_PRECISION); // Set fixed-point notation and precision
+        oss << "Error in constructor Quaternion(const Vecx<Scalar_>& rotation_vec, const Scalar_& rotation_angle, const Scalar_& norm), with an invalid rotation_vec { ";
+        for (int i=0; i<rotation_vec.size(); ++i){
+            oss << rotation_vec[i] << " ";
+        }
+        oss << "}, norm == " << rotation_vec.norm() << ", a unit (norm == 1) 3-dimensional vector is expected instead.\n";
+        throw std::runtime_error(oss.str());
+    }
+        vals_ << cos(0.5 * rotation_angle), 
              sin(0.5 * rotation_angle) * rotation_vec;
     vals_ *= norm;
 }
@@ -318,6 +326,21 @@ Quaternion<Scalar_>& Quaternion<Scalar_>::operator*=(const Scalar_& scalar) noex
  */
 template<typename Scalar_>
 Quaternion<Scalar_>& Quaternion<Scalar_>::operator/=(const Scalar_& scalar) noexcept {vals_ /= scalar; return *this;}
+
+/**
+ * @brief Normalize the calling quaternion.
+ * 
+ * This function normalizes the calling quaternion by ensuring its magnitude becomes 1.
+ * This is crucial for maintaining the correct properties of quaternions, particularly 
+ * when they are used to represent rotations.
+ * 
+ * @return A reference to the calling quaternion after normalization, allowing for method chaining.
+ */
+template<typename Scalar_>
+Quaternion<Scalar_>& Quaternion<Scalar_>::normalize(){
+    vals_.normalize();
+    return *this;
+}
 
 /**
  * @brief Calculates the sum of the calling quaternion and another quaternion.

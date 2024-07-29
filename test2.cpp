@@ -65,44 +65,17 @@ void test5(pdq x)
 
 }
 
+
+
 int main()
 {
-    // test1(3,0,0,0);
-    // test1(3*cos(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34) );
-    // DQ a0(1,2,3,4);
-    // pdq a;
-    // pdq b(a0);
-    // pdq c = pdq( a + b);
-    // DQ d = c * b;
-    // DQ e = a0 * c;
-    // DQ f = c * a0;
-    // pdq g = pdq(6. * f);
-
     
-    // std::cout << a << b << c << d;
+    pdq q1(3,4,5);
+    pdq q2(6,7,8);
 
-    // udq aa;
-    // udq cc(3,4,5,6);
-    // udq bb(DQ(1.,2.,3.,4.));
-    // udq dd = udq(aa + cc);
-    // udq ee = udq(dd * bb);
-    // std::cout << aa << bb << cc << dd << ee;
+    std::cout <<q1*q2.conj() << "\n" << q2*q1.conj();
 
-    DQ a; DQ aa(dq1::Vec4d({5,6,7,8})); 
-    pdq b; pdq bb(dq1::Vec3d({9,80,7}));
-    udq c(1,2,3,4); udq cc(dq1::Vec4d({8,6,1,23})); udq ccc(bb); 
-    updq d(1.,2.,3.); updq dd(dq1::Vec3d({9,4,5})); updq ddd(cc);
-    std::cout << a << "\n"
-                << aa << "\n"
-                << b << "\n"
-                << bb << "\n"
-                << c << "\n"
-                << cc << "\n"
-                << ccc << "\n"
-                << d << "\n"
-                << dd << "\n"
-                << ddd << "\n";
-
+    DQ q3(dq1::Vec4d({1,2,3,4}), 0.5*M_PI, 2);
 
 
 
