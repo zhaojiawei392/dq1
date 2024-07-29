@@ -17,8 +17,8 @@ namespace dq1
  * @param quaternion The quaternion to be multiplied.
  * @return A quaternion which is the result of the scalar multiplication.
  */
-template<typename qScalar_>
-Quaternion<qScalar_> operator*(const qScalar_& scalar, const Quaternion<qScalar_>& quaternion) {
+template<typename Scalar_>
+Quaternion<Scalar_> operator*(const Scalar_& scalar, const Quaternion<Scalar_>& quaternion) {
     return quaternion * scalar;
 }
 
@@ -31,8 +31,8 @@ Quaternion<qScalar_> operator*(const qScalar_& scalar, const Quaternion<qScalar_
  * @param quaternion The quaternion to be multiplied.
  * @return A quaternion which is the result of the scalar multiplication.
  */
-template<typename qScalar_>
-Quaternion<qScalar_> operator*(const qScalar_& scalar, Quaternion<qScalar_>&& quaternion) {
+template<typename Scalar_>
+Quaternion<Scalar_> operator*(const Scalar_& scalar, Quaternion<Scalar_>&& quaternion) {
     return std::move(quaternion *= scalar);
 }
 
@@ -42,13 +42,13 @@ Quaternion<qScalar_> operator*(const qScalar_& scalar, Quaternion<qScalar_>&& qu
  * This operator overload allows a quaternion to be output to an `std::ostream`.
  * It converts the quaternion to a string representation and then inserts it into the stream.
  * 
- * @tparam osScalar_ The scalar type of the quaternion.
+ * @tparam Scalar_ The scalar type of the quaternion.
  * @param os The output stream.
  * @param q The quaternion to be output.
  * @return The output stream after inserting the quaternion's string representation.
  */
-template<typename qScalar_>
-std::ostream& operator<<(std::ostream& os, const Quaternion<qScalar_>& q){
+template<typename Scalar_>
+std::ostream& operator<<(std::ostream& os, const Quaternion<Scalar_>& q){
     os << q.operator std::string();  
 return os;
 } 
@@ -65,8 +65,8 @@ return os;
  * @note The method uses a threshold defined by `OMIT_THRESHOLD` to determine significant deviation from one.
  *       The `PRINT_PRECISION` constant is used to format the printed norm value.
  */
-template<typename qScalar_>
-void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<qScalar_>& quaternion) noexcept {
+template<typename Scalar_>
+void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) noexcept {
     if (std::abs(quaternion.vals_[0]) > OMIT_THRESHOLD)
         std::cout << std::fixed << std::setprecision(PRINT_PRECISION) << 
                      std::move(calling_fn) << " omitted a real part " << quaternion.vals_[0] << ".\n";
@@ -84,7 +84,7 @@ void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<qScalar_>& q
  *                   This is useful for debugging purposes to know where the norm check was triggered.
  * @param quaternion the quaternion that needs to be ensured.
  * 
- * The norm of the quaternion is computed using the base class `Quaternion<Scalar_>::norm()` method.
+ * The norm of the quaternion is computed using the base class `Quaternion<qScalar_>::norm()` method.
  * If the norm is not close to one, a warning message is constructed and printed using `std::cout`.
  * The message includes the calling function's name and the actual norm of the quaternion.
  * Finally, the quaternion is normalized using the `normalized()` method of the base class.
@@ -92,8 +92,8 @@ void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<qScalar_>& q
  * @note The method uses a threshold defined by `OMIT_THRESHOLD` to determine significant deviation from one.
  *       The `PRINT_PRECISION` constant is used to format the printed norm value.
  */
-template<typename qScalar_>
-void _norm_should_be_one(std::string&& calling_fn, Quaternion<qScalar_>& quaternion) noexcept{
+template<typename Scalar_>
+void _norm_should_be_one(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) noexcept{
     if (std::abs(quaternion.norm() - 1) > OMIT_THRESHOLD){
         std::cout << std::fixed << std::setprecision(PRINT_PRECISION) << 
                      std::move(calling_fn) << " normalized a quaternion with a norm " << quaternion.norm() << ".\n";
@@ -137,12 +137,12 @@ template class UnitPureQuaternion<long double>;
  * @brief Default constructor that initializes a Quaternion to zero.
  * 
  * This constructor initializes the quaternion with all components set to zero.
- * It uses the `Vec4<Scalar_>::Zero()` function to create a 4-element vector 
+ * It uses the `Vec4<qScalar_>::Zero()` function to create a 4-element vector 
  * with all elements set to zero, which is then used to initialize the quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>::Quaternion()
-    :vals_(Vec4<Scalar_>::Zero()){}
+template<typename qScalar_>
+Quaternion<qScalar_>::Quaternion()
+    :vals_(Vec4<qScalar_>::Zero()){}
 
 /**
  * @brief Constructs a Quaternion from a vector.
@@ -158,8 +158,8 @@ Quaternion<Scalar_>::Quaternion()
  *            The size of the vector should be 3 or 4.
  * @throws std::range_error if the size of the vector is not 3 or 4.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>::Quaternion(const Vecx<Scalar_>& vec)
+template<typename qScalar_>
+Quaternion<qScalar_>::Quaternion(const Vecx<qScalar_>& vec)
 {
     switch(vec.size())
     {
@@ -188,8 +188,8 @@ Quaternion<Scalar_>::Quaternion(const Vecx<Scalar_>& vec)
  *            The size of the vector should be 3 or 4.
  * @throws std::range_error if the size of the vector is not 3 or 4.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>::Quaternion(Vecx<Scalar_>&& vec)
+template<typename qScalar_>
+Quaternion<qScalar_>::Quaternion(Vecx<qScalar_>&& vec)
 {
     switch(vec.size())
     {
@@ -200,7 +200,7 @@ Quaternion<Scalar_>::Quaternion(Vecx<Scalar_>&& vec)
         vals_ = std::move(vec);
         break;
     default:
-        throw std::range_error("Error in constructor Quaternion(Vecx<Scalar_>&& vec) with a vector size of " + std::to_string(vec.size()) + ", which should be 3 or 4.");
+        throw std::range_error("Error in constructor Quaternion(Vecx<qScalar_>&& vec) with a vector size of " + std::to_string(vec.size()) + ", which should be 3 or 4.");
     }
 }
 
@@ -215,11 +215,11 @@ Quaternion<Scalar_>::Quaternion(Vecx<Scalar_>&& vec)
  * @param vec The 3-element vector used to initialize the imaginary parts of the quaternion.
  * @throws std::range_error if the size of the vector is not 3.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>::Quaternion(const Scalar_& w, const Vecx<Scalar_>& vec)
+template<typename qScalar_>
+Quaternion<qScalar_>::Quaternion(const qScalar_& w, const Vecx<qScalar_>& vec)
 {
     if (vec.size() != 3)
-        throw std::range_error("Error in constructor Quaternion(const Scalar_& w, const Vecx<Scalar_>& vec) with a vector size of " + std::to_string(vec.size()) + ", which should be 3.");
+        throw std::range_error("Error in constructor Quaternion(const qScalar_& w, const Vecx<qScalar_>& vec) with a vector size of " + std::to_string(vec.size()) + ", which should be 3.");
     vals_ << w, vec;
 }
 
@@ -234,8 +234,8 @@ Quaternion<Scalar_>::Quaternion(const Scalar_& w, const Vecx<Scalar_>& vec)
  * @param y The second imaginary part of the quaternion.
  * @param z The third imaginary part of the quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>::Quaternion(const Scalar_& w, const Scalar_& x, const Scalar_& y, const Scalar_& z) :vals_((Vec4<Scalar_>() << w, x, y, z).finished()){}
+template<typename qScalar_>
+Quaternion<qScalar_>::Quaternion(const qScalar_& w, const qScalar_& x, const qScalar_& y, const qScalar_& z) :vals_((Vec4<qScalar_>() << w, x, y, z).finished()){}
 
 /**
  * @brief Constructs a Quaternion from a norm, rotation angle, and a 3-element rotation vector.
@@ -249,13 +249,13 @@ Quaternion<Scalar_>::Quaternion(const Scalar_& w, const Scalar_& x, const Scalar
  * @param rotation_vec The 3-element vector representing the axis of rotation.
  * @throws std::runtime_error if the rotation vector is not unit 3-dimensional.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>::Quaternion(const Vecx<Scalar_>& rotation_vec, const Scalar_& rotation_angle, const Scalar_& norm)
+template<typename qScalar_>
+Quaternion<qScalar_>::Quaternion(const Vecx<qScalar_>& rotation_vec, const qScalar_& rotation_angle, const qScalar_& norm)
 {
     if (rotation_vec.size() != 3 || rotation_vec.norm() != 1){
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(PRINT_PRECISION); // Set fixed-point notation and precision
-        oss << "Error in constructor Quaternion(const Vecx<Scalar_>& rotation_vec, const Scalar_& rotation_angle, const Scalar_& norm), with an invalid rotation_vec { ";
+        oss << "Error in constructor Quaternion(const Vecx<qScalar_>& rotation_vec, const qScalar_& rotation_angle, const qScalar_& norm), with an invalid rotation_vec { ";
         for (int i=0; i<rotation_vec.size(); ++i){
             oss << rotation_vec[i] << " ";
         }
@@ -276,8 +276,8 @@ Quaternion<Scalar_>::Quaternion(const Vecx<Scalar_>& rotation_vec, const Scalar_
  * @param other The quaternion to be added.
  * @return A reference to the calling quaternion after the addition.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>& Quaternion<Scalar_>::operator+=(const Quaternion& other) noexcept {vals_ += other.vals_; return *this;}
+template<typename qScalar_>
+Quaternion<qScalar_>& Quaternion<qScalar_>::operator+=(const Quaternion& other) noexcept {vals_ += other.vals_; return *this;}
 
 /**
  * @brief Subtracts another quaternion from the calling quaternion.
@@ -288,8 +288,8 @@ Quaternion<Scalar_>& Quaternion<Scalar_>::operator+=(const Quaternion& other) no
  * @param other The quaternion to be subtracted.
  * @return A reference to the calling quaternion after the subtraction.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>& Quaternion<Scalar_>::operator-=(const Quaternion& other) noexcept {vals_ -= other.vals_; return *this;}
+template<typename qScalar_>
+Quaternion<qScalar_>& Quaternion<qScalar_>::operator-=(const Quaternion& other) noexcept {vals_ -= other.vals_; return *this;}
 
 /**
  * @brief Multiplies the calling quaternion by another quaternion.
@@ -300,8 +300,8 @@ Quaternion<Scalar_>& Quaternion<Scalar_>::operator-=(const Quaternion& other) no
  * @param other The quaternion to be multiplied by.
  * @return A reference to the calling quaternion after the multiplication.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>& Quaternion<Scalar_>::operator*=(const Quaternion& other) noexcept {vals_ = hamiplus() * other.vals_; return *this;}
+template<typename qScalar_>
+Quaternion<qScalar_>& Quaternion<qScalar_>::operator*=(const Quaternion& other) noexcept {vals_ = hamiplus() * other.vals_; return *this;}
 
 /**
  * @brief Multiplies the calling quaternion by a scalar.
@@ -312,8 +312,9 @@ Quaternion<Scalar_>& Quaternion<Scalar_>::operator*=(const Quaternion& other) no
  * @param scalar The scalar value to multiply by.
  * @return A reference to the calling quaternion after the multiplication.
  */
+template<typename qScalar_>
 template<typename Scalar_>
-Quaternion<Scalar_>& Quaternion<Scalar_>::operator*=(const Scalar_& scalar) noexcept {vals_ *= scalar; return *this;}
+Quaternion<qScalar_>& Quaternion<qScalar_>::operator*=(const Scalar_& scalar) noexcept {vals_ *= scalar; return *this;}
 
 /**
  * @brief Divides the calling quaternion by a scalar.
@@ -324,8 +325,9 @@ Quaternion<Scalar_>& Quaternion<Scalar_>::operator*=(const Scalar_& scalar) noex
  * @param scalar The scalar value to divide by.
  * @return A reference to the calling quaternion after the division.
  */
+template<typename qScalar_>
 template<typename Scalar_>
-Quaternion<Scalar_>& Quaternion<Scalar_>::operator/=(const Scalar_& scalar) noexcept {vals_ /= scalar; return *this;}
+Quaternion<qScalar_>& Quaternion<qScalar_>::operator/=(const Scalar_& scalar) noexcept {vals_ /= scalar; return *this;}
 
 /**
  * @brief Normalize the calling quaternion.
@@ -336,8 +338,8 @@ Quaternion<Scalar_>& Quaternion<Scalar_>::operator/=(const Scalar_& scalar) noex
  * 
  * @return A reference to the calling quaternion after normalization, allowing for method chaining.
  */
-template<typename Scalar_>
-Quaternion<Scalar_>& Quaternion<Scalar_>::normalize(){
+template<typename qScalar_>
+Quaternion<qScalar_>& Quaternion<qScalar_>::normalize(){
     vals_.normalize();
     return *this;
 }
@@ -351,8 +353,8 @@ Quaternion<Scalar_>& Quaternion<Scalar_>::normalize(){
  * @param other The other quaternion to be added to the calling quaternion.
  * @return A quaternion representing the sum of the calling quaternion and the other quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator+(const Quaternion& other) const noexcept {return Quaternion<Scalar_>(vals_ + other.vals_);}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::operator+(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(vals_ + other.vals_);}
 
 /**
  * @brief Calculates the sum of the calling quaternion and another quaternion.
@@ -363,8 +365,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator+(const Quaternion& other) cons
  * @param other The other quaternion to be added to the calling quaternion.
  * @return A quaternion representing the sum of the calling quaternion and the other quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator+(Quaternion&& other) const noexcept {other.vals_ += vals_; return std::move(other);}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::operator+(Quaternion&& other) const noexcept {other.vals_ += vals_; return std::move(other);}
 
 /**
  * @brief Calculates the subtraction of another quaternion from the calling quaternion.
@@ -375,8 +377,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator+(Quaternion&& other) const noe
  * @param other The other quaternion to be subtracted from the calling quaternion.
  * @return A quaternion representing the result of the calling quaternion subtracting the other quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator-(const Quaternion& other) const noexcept {return Quaternion<Scalar_>(vals_ - other.vals_);}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::operator-(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(vals_ - other.vals_);}
 
 /**
  * @brief Calculates the subtraction of another quaternion from the calling quaternion.
@@ -387,8 +389,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator-(const Quaternion& other) cons
  * @param other The other quaternion to be subtracted from the calling quaternion.
  * @return A quaternion representing the result of the calling quaternion subtracting the other quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator-(Quaternion&& other) const noexcept {other.vals_ = vals_ - other.vals_; return std::move(other);}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::operator-(Quaternion&& other) const noexcept {other.vals_ = vals_ - other.vals_; return std::move(other);}
 
 /**
  * @brief Calculates the product of the calling quaternion and another quaternion.
@@ -399,8 +401,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator-(Quaternion&& other) const noe
  * @param other The other quaternion to multiply with the calling quaternion.
  * @return A quaternion representing the product of the calling quaternion and the other quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator*(const Quaternion& other) const noexcept {return Quaternion<Scalar_>(other.haminus() * vals_);}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::operator*(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(other.haminus() * vals_);}
 
 /**
  * @brief Calculates the product of the calling quaternion and another quaternion.
@@ -411,8 +413,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator*(const Quaternion& other) cons
  * @param other The other quaternion to multiply with the calling quaternion.
  * @return A quaternion representing the product of the calling quaternion and the other quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator*(Quaternion&& other) const noexcept {other.vals_ = hamiplus() * other.vals_; return std::move(other);}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::operator*(Quaternion&& other) const noexcept {other.vals_ = hamiplus() * other.vals_; return std::move(other);}
 
 /**
  * @brief Calculates the product of the calling quaternion and a scalar.
@@ -423,8 +425,9 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator*(Quaternion&& other) const noe
  * @param scalar The scalar to multiply with the calling quaternion.
  * @return A quaternion representing the product of the calling quaternion and the scalar.
  */
+template<typename qScalar_>
 template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator*(const Scalar_& scalar) const noexcept {return Quaternion<Scalar_>(vals_ * scalar);}
+Quaternion<qScalar_> Quaternion<qScalar_>::operator*(const Scalar_& scalar) const noexcept {return Quaternion<qScalar_>(vals_ * scalar);}
 
 /**
  * @brief Calculates the division of the calling quaternion by a scalar.
@@ -435,8 +438,9 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator*(const Scalar_& scalar) const 
  * @param scalar The scalar to divide the calling quaternion by.
  * @return A quaternion representing the result of the calling quaternion divided by the scalar.
  */
+template<typename qScalar_>
 template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator/(const Scalar_& scalar) const noexcept {return Quaternion<Scalar_>(vals_ / scalar);}
+Quaternion<qScalar_> Quaternion<qScalar_>::operator/(const Scalar_& scalar) const noexcept {return Quaternion<qScalar_>(vals_ / scalar);}
 
 /**
  * @brief Calculates the negation of the calling quaternion.
@@ -445,8 +449,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator/(const Scalar_& scalar) const 
  * 
  * @return A quaternion which is the negation of the calling quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::operator-() const noexcept {return Quaternion<Scalar_>(-vals_);}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::operator-() const noexcept {return Quaternion<qScalar_>(-vals_);}
 
 /**
  * @brief Compares two quaternions for equality.
@@ -457,8 +461,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::operator-() const noexcept {return Quat
  * @param other The quaternion to compare with.
  * @return True if the quaternions are equal, false otherwise.
  */
-template<typename Scalar_>
-bool Quaternion<Scalar_>::operator==(const Quaternion& other) const noexcept {return vals_ == other.vals_;}
+template<typename qScalar_>
+bool Quaternion<qScalar_>::operator==(const Quaternion& other) const noexcept {return vals_ == other.vals_;}
 
 /**
  * @brief Compares two quaternions for inequality.
@@ -469,8 +473,8 @@ bool Quaternion<Scalar_>::operator==(const Quaternion& other) const noexcept {re
  * @param other The quaternion to compare with.
  * @return True if the quaternions are not equal, false otherwise.
  */
-template<typename Scalar_>
-bool Quaternion<Scalar_>::operator!=(const Quaternion& other) const noexcept {return vals_ != other.vals_;}
+template<typename qScalar_>
+bool Quaternion<qScalar_>::operator!=(const Quaternion& other) const noexcept {return vals_ != other.vals_;}
 
 /**
  * @brief Converts the quaternion to a string representation.
@@ -480,8 +484,8 @@ bool Quaternion<Scalar_>::operator!=(const Quaternion& other) const noexcept {re
  * 
  * @return A string representing the quaternion in the format "w + x î + y ĵ + z k̂".
  */
-template<typename Scalar_>
-Quaternion<Scalar_>::operator std::string() const
+template<typename qScalar_>
+Quaternion<qScalar_>::operator std::string() const
 {
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(PRINT_PRECISION); // Set fixed-point notation and precision
@@ -497,8 +501,8 @@ Quaternion<Scalar_>::operator std::string() const
  * 
  * @return The norm of the quaternion.
  */
-template<typename Scalar_>
-Scalar_ Quaternion<Scalar_>::norm() const noexcept {return vals_.norm();}
+template<typename qScalar_>
+qScalar_ Quaternion<qScalar_>::norm() const noexcept {return vals_.norm();}
 
 /**
  * @brief Calculates the rotation angle represented by the quaternion.
@@ -508,8 +512,8 @@ Scalar_ Quaternion<Scalar_>::norm() const noexcept {return vals_.norm();}
  * 
  * @return The rotation angle in radians.
  */
-template<typename Scalar_>
-Scalar_ Quaternion<Scalar_>::rotation_angle() const noexcept {return 2 * acos(vals_[0] / norm());}
+template<typename qScalar_>
+qScalar_ Quaternion<qScalar_>::rotation_angle() const noexcept {return 2 * acos(vals_[0] / norm());}
 
 /**
  * @brief Calculates the rotation axis represented by the quaternion.
@@ -519,8 +523,8 @@ Scalar_ Quaternion<Scalar_>::rotation_angle() const noexcept {return 2 * acos(va
  * 
  * @return A quaternion representing the rotation axis.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::rotation_axis() const noexcept {return Quaternion<Scalar_>( rotation_vec() );}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::rotation_axis() const noexcept {return Quaternion<qScalar_>( rotation_vec() );}
 
 /**
  * @brief Calculates the rotation vector (normalized imaginary part) of the quaternion.
@@ -530,11 +534,11 @@ Quaternion<Scalar_> Quaternion<Scalar_>::rotation_axis() const noexcept {return 
  * 
  * @return The normalized rotation vector.
  */
-template<typename Scalar_>
-Vec3<Scalar_> Quaternion<Scalar_>::rotation_vec() const noexcept
+template<typename qScalar_>
+Vec3<qScalar_> Quaternion<qScalar_>::rotation_vec() const noexcept
 { 
     if (vec3().norm() == 0)
-        return (Vec3<Scalar_>() << 0,0,1).finished(); // convention
+        return (Vec3<qScalar_>() << 0,0,1).finished(); // convention
     else 
         return vec3().normalized();
 }
@@ -547,8 +551,8 @@ Vec3<Scalar_> Quaternion<Scalar_>::rotation_vec() const noexcept
  * 
  * @return A quaternion representing the conjugate.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::conj() const noexcept {return Quaternion( (Vec4<Scalar_>() << vals_[0], -vec3()).finished() ); }
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::conj() const noexcept {return Quaternion( (Vec4<qScalar_>() << vals_[0], -vec3()).finished() ); }
 
 /**
  * @brief Calculates the inverse of the quaternion.
@@ -558,8 +562,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::conj() const noexcept {return Quaternio
  * 
  * @return A quaternion representing the inverse.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::inv() const noexcept {return conj() / square(norm());}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::inv() const noexcept {return conj() / square(norm());}
  
 /**
  * @brief Calculates the natural logarithm of the calling quaternion.
@@ -573,10 +577,10 @@ Quaternion<Scalar_> Quaternion<Scalar_>::inv() const noexcept {return conj() / s
  * 
  * @return A quaternion representing the natural logarithm of the calling quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::ln() const noexcept 
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::ln() const noexcept 
 {
-    return Quaternion<Scalar_>(std::log(norm()), 0.5 * rotation_angle() * rotation_vec());
+    return Quaternion<qScalar_>(std::log(norm()), 0.5 * rotation_angle() * rotation_vec());
 } 
 
 /**
@@ -588,10 +592,10 @@ Quaternion<Scalar_> Quaternion<Scalar_>::ln() const noexcept
  * 
  * @return A quaternion representing the exponential of the original quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::exp() const noexcept 
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::exp() const noexcept 
 {
-    return Quaternion<Scalar_>(std::exp(vals_[0]) * cos(vec3().norm()), std::exp(vals_[0]) * sin( vec3().norm() ) * vec3().normalized());
+    return Quaternion<qScalar_>(std::exp(vals_[0]) * cos(vec3().norm()), std::exp(vals_[0]) * sin( vec3().norm() ) * vec3().normalized());
 } 
 
 /**
@@ -604,10 +608,11 @@ Quaternion<Scalar_> Quaternion<Scalar_>::exp() const noexcept
  * @param index The exponent to which the quaternion is raised.
  * @return A quaternion representing the original quaternion raised to the given power.
  */
+template<typename qScalar_>
 template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::pow(const Scalar_& index) const noexcept 
+Quaternion<qScalar_> Quaternion<qScalar_>::pow(const Scalar_& index) const noexcept 
 {
-    return Quaternion<Scalar_>(rotation_vec(), index * rotation_angle(), std::pow(norm(), index));
+    return Quaternion<qScalar_>(rotation_vec(), index * rotation_angle(), std::pow(norm(), index));
 } 
 
 /**
@@ -618,8 +623,8 @@ Quaternion<Scalar_> Quaternion<Scalar_>::pow(const Scalar_& index) const noexcep
  * 
  * @return A normalized quaternion.
  */
-template<typename Scalar_>
-Quaternion<Scalar_> Quaternion<Scalar_>::normalized() const noexcept {return (*this) / norm();}
+template<typename qScalar_>
+Quaternion<qScalar_> Quaternion<qScalar_>::normalized() const noexcept {return (*this) / norm();}
 
 /**
  * @brief Constructs the Hamilton operator (H+) matrix of the calling quaternion.
@@ -632,14 +637,14 @@ Quaternion<Scalar_> Quaternion<Scalar_>::normalized() const noexcept {return (*t
  * 
  * @return A 4x4 matrix representing the Hamilton operator (H+) of the calling quaternion.
  */
-template<typename Scalar_>
-Mat4<Scalar_> Quaternion<Scalar_>::hamiplus() const noexcept 
+template<typename qScalar_>
+Mat4<qScalar_> Quaternion<qScalar_>::hamiplus() const noexcept 
 {      
-    const Scalar_ w = vals_[0];
-    const Scalar_ x = vals_[1];
-    const Scalar_ y = vals_[2];
-    const Scalar_ z = vals_[3];
-    return (Mat4<Scalar_>() << w, -x, -y, -z,
+    const qScalar_ w = vals_[0];
+    const qScalar_ x = vals_[1];
+    const qScalar_ y = vals_[2];
+    const qScalar_ z = vals_[3];
+    return (Mat4<qScalar_>() << w, -x, -y, -z,
                                 x,  w, -z,  y,
                                 y,  z,  w, -x,
                                 z, -y,  x,  w).finished();
@@ -656,14 +661,14 @@ Mat4<Scalar_> Quaternion<Scalar_>::hamiplus() const noexcept
  * 
  * @return A 4x4 matrix representing the Hamilton operator (H-) of the calling quaternion.
  */
-template<typename Scalar_>
-Mat4<Scalar_> Quaternion<Scalar_>::haminus() const noexcept 
+template<typename qScalar_>
+Mat4<qScalar_> Quaternion<qScalar_>::haminus() const noexcept 
 {
-    const Scalar_ w = vals_[0];
-    const Scalar_ x = vals_[1];
-    const Scalar_ y = vals_[2];
-    const Scalar_ z = vals_[3];
-    return (Mat4<Scalar_>() << w, -x, -y, -z,
+    const qScalar_ w = vals_[0];
+    const qScalar_ x = vals_[1];
+    const qScalar_ y = vals_[2];
+    const qScalar_ z = vals_[3];
+    return (Mat4<qScalar_>() << w, -x, -y, -z,
                                 x,  w,  z, -y,
                                 y, -z,  w,  x,
                                 z,  y, -x,  w).finished();
@@ -678,8 +683,8 @@ Mat4<Scalar_> Quaternion<Scalar_>::haminus() const noexcept
  * 
  * @return A string representing the quaternion in the format "w + x î + y ĵ + z k̂".
  */
-template<typename Scalar_>
-std::string Quaternion<Scalar_>::to_string() const {return operator std::string();}
+template<typename qScalar_>
+std::string Quaternion<qScalar_>::to_string() const {return operator std::string();}
 
 /**
  * @brief Returns the scalar (real) part of the quaternion.
@@ -689,8 +694,8 @@ std::string Quaternion<Scalar_>::to_string() const {return operator std::string(
  * 
  * @return The scalar part of the quaternion.
  */
-template<typename Scalar_>
-Scalar_ Quaternion<Scalar_>::w() const noexcept {return vals_[0];}
+template<typename qScalar_>
+qScalar_ Quaternion<qScalar_>::w() const noexcept {return vals_[0];}
 
 /**
  * @brief Returns the first imaginary part of the quaternion.
@@ -700,8 +705,8 @@ Scalar_ Quaternion<Scalar_>::w() const noexcept {return vals_[0];}
  * 
  * @return The first imaginary part of the quaternion.
  */
-template<typename Scalar_>
-Scalar_ Quaternion<Scalar_>::x() const noexcept {return vals_[1];}
+template<typename qScalar_>
+qScalar_ Quaternion<qScalar_>::x() const noexcept {return vals_[1];}
 
 /**
  * @brief Returns the second imaginary part of the quaternion.
@@ -711,8 +716,8 @@ Scalar_ Quaternion<Scalar_>::x() const noexcept {return vals_[1];}
  * 
  * @return The second imaginary part of the quaternion.
  */
-template<typename Scalar_>
-Scalar_ Quaternion<Scalar_>::y() const noexcept {return vals_[2];}
+template<typename qScalar_>
+qScalar_ Quaternion<qScalar_>::y() const noexcept {return vals_[2];}
 
 /**
  * @brief Returns the third imaginary part of the quaternion.
@@ -722,8 +727,8 @@ Scalar_ Quaternion<Scalar_>::y() const noexcept {return vals_[2];}
  * 
  * @return The third imaginary part of the quaternion.
  */
-template<typename Scalar_>
-Scalar_ Quaternion<Scalar_>::z() const noexcept {return vals_[3];}
+template<typename qScalar_>
+qScalar_ Quaternion<qScalar_>::z() const noexcept {return vals_[3];}
 
 /**
  * @brief Retrieves the imaginary part of the quaternion as a 3-element vector.
@@ -733,8 +738,8 @@ Scalar_ Quaternion<Scalar_>::z() const noexcept {return vals_[3];}
  * 
  * @return A 3-element vector representing the imaginary part of the quaternion.
  */
-template<typename Scalar_>
-Vec3<Scalar_> Quaternion<Scalar_>::vec3() const noexcept {return vals_.template tail<3>();}
+template<typename qScalar_>
+Vec3<qScalar_> Quaternion<qScalar_>::vec3() const noexcept {return vals_.template tail<3>();}
 
 /**
  * @brief Retrieves the quaternion as a 4-element vector.
@@ -744,8 +749,8 @@ Vec3<Scalar_> Quaternion<Scalar_>::vec3() const noexcept {return vals_.template 
  * 
  * @return A 4-element vector representing the quaternion.
  */
-template<typename Scalar_>
-Vec4<Scalar_> Quaternion<Scalar_>::vec4() const noexcept {return vals_;}
+template<typename qScalar_>
+Vec4<qScalar_> Quaternion<qScalar_>::vec4() const noexcept {return vals_;}
 
 
 // ***********************************************************************************************************************
@@ -762,8 +767,8 @@ Vec4<Scalar_> Quaternion<Scalar_>::vec4() const noexcept {return vals_;}
  * 
  * @param vec The 3D vector to initialize the quaternion.
  */
-template<typename Scalar_>
-PureQuaternion<Scalar_>::PureQuaternion(const Vecx<Scalar_>& vec) : Quaternion<Scalar_>(0, vec) {}
+template<typename qScalar_>
+PureQuaternion<qScalar_>::PureQuaternion(const Vecx<qScalar_>& vec) : Quaternion<qScalar_>(0, vec) {}
 
 /**
  * @brief Constructs a PureQuaternion from three scalar values.
@@ -775,9 +780,9 @@ PureQuaternion<Scalar_>::PureQuaternion(const Vecx<Scalar_>& vec) : Quaternion<S
  * @param y The y component.
  * @param z The z component.
  */
-template<typename Scalar_>
-PureQuaternion<Scalar_>::PureQuaternion(const Scalar_& x, const Scalar_& y, const Scalar_& z) 
-    : Quaternion<Scalar_>(0, x,y,z) {}
+template<typename qScalar_>
+PureQuaternion<qScalar_>::PureQuaternion(const qScalar_& x, const qScalar_& y, const qScalar_& z) 
+    : Quaternion<qScalar_>(0, x,y,z) {}
 
 /**
  * @brief Constructs a PureQuaternion from a base Quaternion.
@@ -787,9 +792,9 @@ PureQuaternion<Scalar_>::PureQuaternion(const Scalar_& x, const Scalar_& y, cons
  * 
  * @param other The base quaternion to copy.
  */
-template<typename Scalar_>
-PureQuaternion<Scalar_>::PureQuaternion(const Quaternion<Scalar_>& other) : Quaternion<Scalar_>(other) {
-    _real_part_should_be_zero("PureQuaternion(const Quaternion<Scalar_>& other)", *this);
+template<typename qScalar_>
+PureQuaternion<qScalar_>::PureQuaternion(const Quaternion<qScalar_>& other) : Quaternion<qScalar_>(other) {
+    _real_part_should_be_zero("PureQuaternion(const Quaternion<qScalar_>& other)", *this);
 }
 
 /**
@@ -800,9 +805,9 @@ PureQuaternion<Scalar_>::PureQuaternion(const Quaternion<Scalar_>& other) : Quat
  * 
  * @param other The base quaternion to move.
  */
-template<typename Scalar_>
-PureQuaternion<Scalar_>::PureQuaternion(Quaternion<Scalar_>&& other) : Quaternion<Scalar_>(std::move(other)) {
-    _real_part_should_be_zero("PureQuaternion(Quaternion<Scalar_>&& other)", *this);
+template<typename qScalar_>
+PureQuaternion<qScalar_>::PureQuaternion(Quaternion<qScalar_>&& other) : Quaternion<qScalar_>(std::move(other)) {
+    _real_part_should_be_zero("PureQuaternion(Quaternion<qScalar_>&& other)", *this);
 }
 
 /**
@@ -814,11 +819,11 @@ PureQuaternion<Scalar_>::PureQuaternion(Quaternion<Scalar_>&& other) : Quaternio
  * @param other The base quaternion to copy.
  * @return Reference to this PureQuaternion.
  */
-template<typename Scalar_>
-PureQuaternion<Scalar_>& PureQuaternion<Scalar_>::operator=(const Quaternion<Scalar_>& other) {
+template<typename qScalar_>
+PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::operator=(const Quaternion<qScalar_>& other) {
     if (this != &other) {
-        Quaternion<Scalar_>::operator=(other);
-        _real_part_should_be_zero("PureQuaternion<Scalar_>::operator=(const Quaternion<Scalar_>& other)", *this);
+        Quaternion<qScalar_>::operator=(other);
+        _real_part_should_be_zero("PureQuaternion<qScalar_>::operator=(const Quaternion<qScalar_>& other)", *this);
     }
     return *this;
 }
@@ -832,11 +837,11 @@ PureQuaternion<Scalar_>& PureQuaternion<Scalar_>::operator=(const Quaternion<Sca
  * @param other The base quaternion to move.
  * @return Reference to this PureQuaternion.
  */
-template<typename Scalar_>
-PureQuaternion<Scalar_>& PureQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&& other) {
+template<typename qScalar_>
+PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::operator=(Quaternion<qScalar_>&& other) {
     if (this != &other) {
-        Quaternion<Scalar_>::operator=(std::move(other));
-        _real_part_should_be_zero("PureQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&& other)", *this);
+        Quaternion<qScalar_>::operator=(std::move(other));
+        _real_part_should_be_zero("PureQuaternion<qScalar_>::operator=(Quaternion<qScalar_>&& other)", *this);
     }
     return *this;
 }
@@ -850,9 +855,9 @@ PureQuaternion<Scalar_>& PureQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&
  * @param other The other pure quaternion to compare with.
  * @return True if they are equal, false otherwise.
  */
-template<typename Scalar_>
-bool PureQuaternion<Scalar_>::operator==(const PureQuaternion<Scalar_>& other) const noexcept {
-    return Quaternion<Scalar_>::vec3() == other.vec3();
+template<typename qScalar_>
+bool PureQuaternion<qScalar_>::operator==(const PureQuaternion<qScalar_>& other) const noexcept {
+    return Quaternion<qScalar_>::vec3() == other.vec3();
 }
 
 /**
@@ -864,9 +869,9 @@ bool PureQuaternion<Scalar_>::operator==(const PureQuaternion<Scalar_>& other) c
  * @param other The other pure quaternion to compare with.
  * @return True if they are not equal, false otherwise.
  */
-template<typename Scalar_>
-bool PureQuaternion<Scalar_>::operator!=(const PureQuaternion<Scalar_>& other) const noexcept {
-    return Quaternion<Scalar_>::vec3() != other.vec3();
+template<typename qScalar_>
+bool PureQuaternion<qScalar_>::operator!=(const PureQuaternion<qScalar_>& other) const noexcept {
+    return Quaternion<qScalar_>::vec3() != other.vec3();
 }
 
 
@@ -892,10 +897,10 @@ bool PureQuaternion<Scalar_>::operator!=(const PureQuaternion<Scalar_>& other) c
  *            The size of the vector should be 3 or 4.
  * @throws std::range_error if the size of the vector is not 3 or 4.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>::UnitQuaternion(const Vecx<Scalar_>& vec) 
-    : Quaternion<Scalar_>(vec) {
-    _norm_should_be_one("UnitQuaternion(const Vecx<Scalar_>& vec)", *this);
+template<typename qScalar_>
+UnitQuaternion<qScalar_>::UnitQuaternion(const Vecx<qScalar_>& vec) 
+    : Quaternion<qScalar_>(vec) {
+    _norm_should_be_one("UnitQuaternion(const Vecx<qScalar_>& vec)", *this);
 }
 
 /**
@@ -914,10 +919,10 @@ UnitQuaternion<Scalar_>::UnitQuaternion(const Vecx<Scalar_>& vec)
  *            The size of the vector should be 3 or 4.
  * @throws std::range_error if the size of the vector is not 3 or 4.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>::UnitQuaternion(Vecx<Scalar_>&& vec) 
-    : Quaternion<Scalar_>(std::move(vec)) {
-    _norm_should_be_one("UnitQuaternion(Vecx<Scalar_>&& vec)", *this);
+template<typename qScalar_>
+UnitQuaternion<qScalar_>::UnitQuaternion(Vecx<qScalar_>&& vec) 
+    : Quaternion<qScalar_>(std::move(vec)) {
+    _norm_should_be_one("UnitQuaternion(Vecx<qScalar_>&& vec)", *this);
 }
 
 /**
@@ -932,10 +937,10 @@ UnitQuaternion<Scalar_>::UnitQuaternion(Vecx<Scalar_>&& vec)
  * @param vec The vector part of the quaternion, which should have exactly 3 elements.
  * @throws std::range_error if the size of the vector is not 3.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>::UnitQuaternion(const Scalar_& w, const Vecx<Scalar_>& vec) 
-    : Quaternion<Scalar_>(w, vec) {
-    _norm_should_be_one("UnitQuaternion(const Scalar_& w, const Vecx<Scalar_>& vec)", *this);
+template<typename qScalar_>
+UnitQuaternion<qScalar_>::UnitQuaternion(const qScalar_& w, const Vecx<qScalar_>& vec) 
+    : Quaternion<qScalar_>(w, vec) {
+    _norm_should_be_one("UnitQuaternion(const qScalar_& w, const Vecx<qScalar_>& vec)", *this);
 }
 
 /**
@@ -951,10 +956,10 @@ UnitQuaternion<Scalar_>::UnitQuaternion(const Scalar_& w, const Vecx<Scalar_>& v
  * @param y The y component of the vector part of the quaternion.
  * @param z The z component of the vector part of the quaternion.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>::UnitQuaternion(const Scalar_& w, const Scalar_& x, const Scalar_& y, const Scalar_& z) 
-    : Quaternion<Scalar_>(w, x, y, z) {
-    _norm_should_be_one("UnitQuaternion(const Scalar_& w, const Scalar_& x, const Scalar_& y, const Scalar_& z)", *this);
+template<typename qScalar_>
+UnitQuaternion<qScalar_>::UnitQuaternion(const qScalar_& w, const qScalar_& x, const qScalar_& y, const qScalar_& z) 
+    : Quaternion<qScalar_>(w, x, y, z) {
+    _norm_should_be_one("UnitQuaternion(const qScalar_& w, const qScalar_& x, const qScalar_& y, const qScalar_& z)", *this);
 }
 
 /**
@@ -970,10 +975,10 @@ UnitQuaternion<Scalar_>::UnitQuaternion(const Scalar_& w, const Scalar_& x, cons
  * @param rotation_vec The vector defining the axis of rotation.
  * @param rotation_angle The angle of rotation in radians.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>::UnitQuaternion(const Vecx<Scalar_>& rotation_vec, const Scalar_& rotation_angle) 
-    : Quaternion<Scalar_>(rotation_vec, rotation_angle) {
-    _norm_should_be_one("UnitQuaternion(const Vecx<Scalar_>& rotation_vec, const Scalar_& rotation_angle)", *this);
+template<typename qScalar_>
+UnitQuaternion<qScalar_>::UnitQuaternion(const Vecx<qScalar_>& rotation_vec, const qScalar_& rotation_angle) 
+    : Quaternion<qScalar_>(rotation_vec, rotation_angle) {
+    _norm_should_be_one("UnitQuaternion(const Vecx<qScalar_>& rotation_vec, const qScalar_& rotation_angle)", *this);
 }
 
 /**
@@ -984,9 +989,9 @@ UnitQuaternion<Scalar_>::UnitQuaternion(const Vecx<Scalar_>& rotation_vec, const
  * 
  * @param other The lvalue reference to the Quaternion used to initialize the UnitQuaternion.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>::UnitQuaternion(const Quaternion<Scalar_>& other) : Quaternion<Scalar_>(other) {
-    _norm_should_be_one("UnitQuaternion(const Quaternion<Scalar_>& other)", *this);
+template<typename qScalar_>
+UnitQuaternion<qScalar_>::UnitQuaternion(const Quaternion<qScalar_>& other) : Quaternion<qScalar_>(other) {
+    _norm_should_be_one("UnitQuaternion(const Quaternion<qScalar_>& other)", *this);
 }
 
 /**
@@ -997,9 +1002,9 @@ UnitQuaternion<Scalar_>::UnitQuaternion(const Quaternion<Scalar_>& other) : Quat
  * 
  * @param other The rvalue reference to the Quaternion used to initialize the UnitQuaternion.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>::UnitQuaternion(Quaternion<Scalar_>&& other) : Quaternion<Scalar_>(std::move(other)) {
-    _norm_should_be_one("UnitQuaternion(Quaternion<Scalar_>&& other)", *this);
+template<typename qScalar_>
+UnitQuaternion<qScalar_>::UnitQuaternion(Quaternion<qScalar_>&& other) : Quaternion<qScalar_>(std::move(other)) {
+    _norm_should_be_one("UnitQuaternion(Quaternion<qScalar_>&& other)", *this);
 }
 
 /**
@@ -1011,11 +1016,11 @@ UnitQuaternion<Scalar_>::UnitQuaternion(Quaternion<Scalar_>&& other) : Quaternio
  * @param other The lvalue reference to the Quaternion used to initialize the UnitQuaternion.
  * @return A reference to the updated UnitQuaternion.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>& UnitQuaternion<Scalar_>::operator=(const Quaternion<Scalar_>& other) {
+template<typename qScalar_>
+UnitQuaternion<qScalar_>& UnitQuaternion<qScalar_>::operator=(const Quaternion<qScalar_>& other) {
     if (this != &other) {
-        Quaternion<Scalar_>::operator=(other); // Use the base class assignment operator
-        _norm_should_be_one("UnitQuaternion<Scalar_>::operator=(const Quaternion<Scalar_>& other)", *this);
+        Quaternion<qScalar_>::operator=(other); // Use the base class assignment operator
+        _norm_should_be_one("UnitQuaternion<qScalar_>::operator=(const Quaternion<qScalar_>& other)", *this);
     }
     return *this;
 }
@@ -1029,11 +1034,11 @@ UnitQuaternion<Scalar_>& UnitQuaternion<Scalar_>::operator=(const Quaternion<Sca
  * @param other The rvalue reference to the Quaternion used to initialize the UnitQuaternion.
  * @return A reference to the updated UnitQuaternion.
  */
-template<typename Scalar_>
-UnitQuaternion<Scalar_>& UnitQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&& other) {
+template<typename qScalar_>
+UnitQuaternion<qScalar_>& UnitQuaternion<qScalar_>::operator=(Quaternion<qScalar_>&& other) {
     if (this != &other) {
-        Quaternion<Scalar_>::operator=(std::move(other)); // Use the base class assignment operator
-        _norm_should_be_one("UnitQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&& other)", *this);
+        Quaternion<qScalar_>::operator=(std::move(other)); // Use the base class assignment operator
+        _norm_should_be_one("UnitQuaternion<qScalar_>::operator=(Quaternion<qScalar_>&& other)", *this);
     }
     return *this;
 }
@@ -1055,9 +1060,9 @@ UnitQuaternion<Scalar_>& UnitQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&
  *            The size of the vector should be 3.
  * @throws std::range_error if the size of the vector is not 3.
  */
-template<typename Scalar_>
-UnitPureQuaternion<Scalar_>::UnitPureQuaternion(const Vecx<Scalar_>& vec): Quaternion<Scalar_>(0, vec) {
-    _norm_should_be_one("UnitPureQuaternion(const Vecx<Scalar_>& vec)", *this);
+template<typename qScalar_>
+UnitPureQuaternion<qScalar_>::UnitPureQuaternion(const Vecx<qScalar_>& vec): Quaternion<qScalar_>(0, vec) {
+    _norm_should_be_one("UnitPureQuaternion(const Vecx<qScalar_>& vec)", *this);
 }
 
 /**
@@ -1070,9 +1075,9 @@ UnitPureQuaternion<Scalar_>::UnitPureQuaternion(const Vecx<Scalar_>& vec): Quate
  * @param y The y component.
  * @param z The z component.
  */
-template<typename Scalar_>
-UnitPureQuaternion<Scalar_>::UnitPureQuaternion(const Scalar_& x, const Scalar_& y, const Scalar_& z):Quaternion<Scalar_>(0, x,y,x){
-    _norm_should_be_one("UnitPureQuaternion(const Scalar_& x, const Scalar_& y, const Scalar_& z)", *this);
+template<typename qScalar_>
+UnitPureQuaternion<qScalar_>::UnitPureQuaternion(const qScalar_& x, const qScalar_& y, const qScalar_& z):Quaternion<qScalar_>(0, x,y,x){
+    _norm_should_be_one("UnitPureQuaternion(const qScalar_& x, const qScalar_& y, const qScalar_& z)", *this);
 }
 
 /**
@@ -1082,10 +1087,10 @@ UnitPureQuaternion<Scalar_>::UnitPureQuaternion(const Scalar_& x, const Scalar_&
  * 
  * @param other The quaternion to initialize from.
  */
-template<typename Scalar_>
-UnitPureQuaternion<Scalar_>::UnitPureQuaternion(const Quaternion<Scalar_>& other): Quaternion<Scalar_>(other){
-    _real_part_should_be_zero("UnitPureQuaternion(const Quaternion<Scalar_>& other)", *this);
-    _norm_should_be_one("UnitPureQuaternion(const Quaternion<Scalar_>& other)", *this);
+template<typename qScalar_>
+UnitPureQuaternion<qScalar_>::UnitPureQuaternion(const Quaternion<qScalar_>& other): Quaternion<qScalar_>(other){
+    _real_part_should_be_zero("UnitPureQuaternion(const Quaternion<qScalar_>& other)", *this);
+    _norm_should_be_one("UnitPureQuaternion(const Quaternion<qScalar_>& other)", *this);
 }
 
 /**
@@ -1095,10 +1100,10 @@ UnitPureQuaternion<Scalar_>::UnitPureQuaternion(const Quaternion<Scalar_>& other
  * 
  * @param other The rvalue quaternion to initialize from.
  */
-template<typename Scalar_>
-UnitPureQuaternion<Scalar_>::UnitPureQuaternion(Quaternion<Scalar_>&& other): Quaternion<Scalar_>(std::move(other)) {
-    _real_part_should_be_zero("UnitPureQuaternion(const Quaternion<Scalar_>& other)", *this);
-    _norm_should_be_one("UnitPureQuaternion(const Quaternion<Scalar_>& other)", *this);
+template<typename qScalar_>
+UnitPureQuaternion<qScalar_>::UnitPureQuaternion(Quaternion<qScalar_>&& other): Quaternion<qScalar_>(std::move(other)) {
+    _real_part_should_be_zero("UnitPureQuaternion(const Quaternion<qScalar_>& other)", *this);
+    _norm_should_be_one("UnitPureQuaternion(const Quaternion<qScalar_>& other)", *this);
 }
 
 /**
@@ -1109,12 +1114,12 @@ UnitPureQuaternion<Scalar_>::UnitPureQuaternion(Quaternion<Scalar_>&& other): Qu
  * @param other The quaternion to assign from.
  * @return A reference to the assigned UnitPureQuaternion object.
  */
-template<typename Scalar_>
-UnitPureQuaternion<Scalar_>& UnitPureQuaternion<Scalar_>::operator=(const Quaternion<Scalar_>& other) {
+template<typename qScalar_>
+UnitPureQuaternion<qScalar_>& UnitPureQuaternion<qScalar_>::operator=(const Quaternion<qScalar_>& other) {
     if (this != &other){
-        Quaternion<Scalar_>::operator=(other);
-        _real_part_should_be_zero("UnitPureQuaternion<Scalar_>::operator=(const Quaternion<Scalar_>& other)", *this);
-        _norm_should_be_one("UnitPureQuaternion<Scalar_>::operator=(const Quaternion<Scalar_>& other)", *this);
+        Quaternion<qScalar_>::operator=(other);
+        _real_part_should_be_zero("UnitPureQuaternion<qScalar_>::operator=(const Quaternion<qScalar_>& other)", *this);
+        _norm_should_be_one("UnitPureQuaternion<qScalar_>::operator=(const Quaternion<qScalar_>& other)", *this);
     }
     return *this;
 }
@@ -1127,12 +1132,12 @@ UnitPureQuaternion<Scalar_>& UnitPureQuaternion<Scalar_>::operator=(const Quater
  * @param other The rvalue quaternion to assign from.
  * @return A reference to the assigned UnitPureQuaternion object.
  */
-template<typename Scalar_>
-UnitPureQuaternion<Scalar_>& UnitPureQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&& other) {
+template<typename qScalar_>
+UnitPureQuaternion<qScalar_>& UnitPureQuaternion<qScalar_>::operator=(Quaternion<qScalar_>&& other) {
     if (this != &other){
-        Quaternion<Scalar_>::operator=(std::move(other));
-        _real_part_should_be_zero("UnitPureQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&& other)", *this);
-        _norm_should_be_one("UnitPureQuaternion<Scalar_>::operator=(Quaternion<Scalar_>&& other)", *this);
+        Quaternion<qScalar_>::operator=(std::move(other));
+        _real_part_should_be_zero("UnitPureQuaternion<qScalar_>::operator=(Quaternion<qScalar_>&& other)", *this);
+        _norm_should_be_one("UnitPureQuaternion<qScalar_>::operator=(Quaternion<qScalar_>&& other)", *this);
     }
     return *this;
 }
