@@ -1,4 +1,4 @@
-#include "Quaternion.h"
+#include "Quaternion.hpp"
 #include <iostream>
 
 using DQ = dq1::Quaternion<double>;
@@ -75,7 +75,7 @@ int main()
 
     std::cout <<q1*q2.conj() << "\n" << q2*q1.conj();
 
-    DQ q3(dq1::Vec4d({1,2,3,4}), 0.5*M_PI, 2);
+    DQ q3(dq1::Vec3d({1,2,3}), 0.5*M_PI, 2);
 
 
 

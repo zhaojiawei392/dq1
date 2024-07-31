@@ -1,85 +1,84 @@
-#include "Quaternion.h"
+#include "Quaternion.hpp"
+#include "DualNumber.hpp"
+#include "DualQuaternion.hpp"
 #include <iostream>
 
-using DQ = dq1::Quaternion<double>;
+using namespace dq1;
+using q = Quaternion<double>;
+using pq = PureQuaternion<double>;
+using uq = UnitQuaternion<double>;
+using upq = UnitPureQuaternion<double>;
+using dn = DualNumber<double>;
+using dnq = DualNumber<Quaternion<double>>;
+using dq = DualQuaternion<double>;
 
-void test_string(std::string str)
+void print(const q& qx)
 {
-    std::cout << str;
+    std::cout << qx << "\n";
 }
 
-void test1(DQ dq)
+void test_constuctor()
 {
-std::cout<< dq.to_string() << "\n";
+    Vec4d vec4({1,2,3,4});
+    Vec3d vec3({5,6,7});
+    q q0;
+    q q1(vec4);
+    q q2(Vec4d({1,2,3,4}));
+    q q3(q2);
+    q q4(q{});
+    q q5(4,vec3);
+    q q6(vec3, M_PI_2, 2);
+    q q7(7,8,9,10);
+    print(q0);print(q1);print(q2);print(q3);print(q4);print(q5);print(q6);
+    pq pq0{};
+    pq pq1(q0);
+    pq pq2(q{});
+    pq pq3(vec3);
+    pq pq4(Vec3d({5,6,7}));
+    pq pq5(pq0);
+    pq pq6(pq{});
+    pq pq7{1,2,3};
+    print(pq0);print(pq1);print(pq2);print(pq3);print(pq4);print(pq5);print(pq6);
+    uq uq1(q0);
+    uq uq2(q{});
+    uq uq3(2,vec3);
+    uq uq4(Vec3d({5,6,7}));
+    uq uq5(pq0);
+    uq uq6(pq{});
+    uq uq7{1,2,3};
+    print(pq0);print(pq1);print(pq2);print(pq3);print(pq4);print(pq5);print(pq6);
+    upq upq1(q0);
+    upq upq2(q{});
+    upq upq3(vec3);
+    upq upq4(Vec3d({5,6,7}));
+    upq upq5(pq0);
+    upq upq6(pq{});
+    upq upq7{1,2,3};
+    print(pq0);print(pq1);print(pq2);print(pq3);print(pq4);print(pq5);print(pq6);
 }
 
 
-void test2(DQ dq)
-{        
-    std::cout << "dq norm: " << dq.norm() << "\n";  
-    double exp0 = std::exp(dq.w());
-    DQ exp1 = DQ(cos(dq.x()), sin(dq.x()), 0 ,0);
-    DQ exp2 = DQ(cos(dq.y()), 0, sin(dq.y()), 0);
-    DQ exp3 = DQ(cos(dq.z()), 0, 0, sin(dq.z()));
-
-    DQ dq_exp = exp1*exp2*exp3*exp0;
-    DQ dq_exp_ln = dq_exp.ln();
-    std::cout << "dq.exp: " << dq.exp().to_string() <<
-                 "\ndq_exp: " << dq_exp.to_string()<< 
-                 "\ndq_exp_ln: " << dq_exp_ln.to_string() << 
-                 "\ndq.exp_ln: " << dq.exp().ln().to_string() << "\n";
-
-
-    std::cout << "dq.ln: " << dq.ln().to_string() << 
-                "\ndq_ln_exp: " << dq.ln().exp().to_string() << "\n";
-
-    std::cout << "dq.pow 2: " << dq.pow(2).to_string() << "\ndq * dq: " << (dq * dq ).to_string() << "\n";
-    std::cout << "dq.pow 3: " << dq.pow(3).to_string() << "\ndq * dq * dq: " << (dq * dq * dq).to_string() << "\n";
-
-    std::cout << "dq conj: " << dq.conj().to_string() << "\n";
-    std::cout << "dq inv: " << dq.inv().to_string() << "\n";
-}
-
-void test3(DQ dq)
-{
-
-    std::cout << "dq norm: " << dq.norm() << "\n";  
-    std::cout << "dq rot angle: " << dq.rotation_angle() / M_PI * 180 << " rad " << dq.rotation_angle() << " degree\n";
-    std::cout << "dq rot axis: " << dq.rotation_axis().to_string() << "\n";
-}
-
-void test4(const dq1::Vec3d& vec)
-{
-    std::cout <<vec;
-}
-
-void test4(const dq1::Vec4d& vec)
-{
-    std::cout <<vec;
-}
 
 int main()
 {
-    // test1(3,0,0,0);
-    // test1(3*cos(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34), std::sqrt(3)*sin(13*M_PI/34) );
+    test_constuctor();
+    dn dn0;
+    dnq dnq0;
+    std::cout <<dn0 << dnq0;
+    Vec4d v1({1,2,3,4});
+    Vec4d v2({4,3,2,1});
+    std::cout <<v1.dot(v2);
 
+    q q0;
+    q q1(v1);
+    q q2(v2);
+
+    dq dq0;
+    dq dq1;
+    dq dq2(Vec8d::Zero());
+    dq dq3(dq2);
+    dq dq4(q1, q2);
  
-    std::cout << DQ(1);
-
-
-    // test3(DQ(1,2,3,4));
-    // test1(DQ(cos(2.77438 * 0.5), sin(2.77438 * 0.5) * dq1::Vec3<double>(0.371390676354103721, 0.557086014531155582, 0.742781352708207443)) * 5.47723);
-
-    // dq1::Vec3d vec1;
-    // vec1 << 1,2,3;
-    // dq1::Vec4d vec2;
-    // vec2 << 4,5,6,7;
-    
-    // DQ dq1(vec1);
-    // DQ dq2(vec2);
-    // DQ dq3((dq1::Vec4d()<<4,3,2,1).finished());
-
-    // test4(vec1);
-    // test4(vec2);
+    std::cout <<dq0 << dq1<<dq2<<dq3<<dq4;
     return 0;
 }

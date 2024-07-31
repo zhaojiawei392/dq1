@@ -9,11 +9,9 @@ include_directories(
 )
 
 add_executable(test1 
-    src/Quaternion.cpp
     test1.cpp
 )
 
 add_executable(test2 
-    src/Quaternion.cpp
     test2.cpp
 )
