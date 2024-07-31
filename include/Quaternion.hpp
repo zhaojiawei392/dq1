@@ -29,9 +29,9 @@ public:
              Quaternion();
     explicit Quaternion(const Vecx<qScalar_>& vec);
     explicit Quaternion(Vecx<qScalar_>&& vec);
-    explicit Quaternion(const qScalar_& w, const Vec3<qScalar_>& vec);
-    explicit Quaternion(const qScalar_& w, const qScalar_& x=0, const qScalar_& y=0, const qScalar_& z=0);
-    explicit Quaternion(const Vec3<qScalar_>& rotation_vec, const qScalar_& rotation_angle, const qScalar_& norm=1);
+    Quaternion(const qScalar_& w, const Vec3<qScalar_>& vec);
+    Quaternion(const qScalar_& w, const qScalar_& x=0, const qScalar_& y=0, const qScalar_& z=0);
+    Quaternion(const Vec3<qScalar_>& rotation_vec, const qScalar_& rotation_angle, const qScalar_& norm=1);
 
     virtual ~Quaternion()=default;
              Quaternion(const Quaternion& other)=default;

@@ -18,8 +18,8 @@ public:
     DualQuaternion(const Quaternion<dqScalar_>& primary, Quaternion<dqScalar_>&& dual);
     DualQuaternion(Quaternion<dqScalar_>&& primary, const Quaternion<dqScalar_>& dual);
     DualQuaternion(Quaternion<dqScalar_>&& primary, Quaternion<dqScalar_>&& dual);
-    DualQuaternion(const Vec8<dqScalar_>& vec);
-    DualQuaternion(Vec8<dqScalar_>&& vec);
+    explicit DualQuaternion(const Vec8<dqScalar_>& vec);
+    explicit DualQuaternion(Vec8<dqScalar_>&& vec);
     DualQuaternion(const dqScalar_& h0, const dqScalar_& h1=0, const dqScalar_& h2=0, const dqScalar_& h3=0, const dqScalar_& h4=0, const dqScalar_& h5=0, const dqScalar_& h6=0, const dqScalar_& h7=0);
     
     DualQuaternion(const DualQuaternion& dq)=default;
