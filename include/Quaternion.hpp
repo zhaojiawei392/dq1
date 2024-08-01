@@ -5,24 +5,18 @@
 #include <eigen3/Eigen/Dense>
 #include <iomanip>
 #include <cmath>
+#include <concepts>
 
 namespace dq1
 {
 
-template<typename qScalar_>
-class Quaternion;
-template<typename qScalar_>
-class PureQuaternion;
-template<typename qScalar_>
-class unitQuaternion;
-template<typename qScalar_>
-class UnitPureQuaternion;
 
 template<typename qScalar_>
 class Quaternion{
 protected:
     Vec4<qScalar_> vals_;
 public:
+
 
     // Constructors and Assignments
 
@@ -66,7 +60,6 @@ public:
     bool operator==(const Quaternion& other) const noexcept;
     bool operator!=(const Quaternion& other) const noexcept; 
     operator std::string() const;
-    explicit operator qScalar_() const;
 
     // service functions const
 
@@ -78,19 +71,22 @@ public:
     Quaternion inv() const noexcept;
     Quaternion ln() const noexcept;
     Quaternion exp() const noexcept;
-    template<typename Scalar_>
-    Quaternion pow(const Scalar_& index) const noexcept;
     Quaternion normalized() const noexcept;
     Mat4<qScalar_> hamiplus() const noexcept;
     Mat4<qScalar_> haminus() const noexcept;
     std::string to_string() const;
-
     qScalar_ w() const noexcept;
     qScalar_ x() const noexcept;
     qScalar_ y() const noexcept;
     qScalar_ z() const noexcept;
     Vec3<qScalar_> vec3() const noexcept;
     Vec4<qScalar_> vec4() const noexcept;
+
+    // Concept constraints
+    template<typename Scalar_>
+    Quaternion pow(const Scalar_& index) const noexcept;
+
+
 
     // Friends "const"
     
@@ -182,10 +178,6 @@ public:
     UnitPureQuaternion& operator=(UnitPureQuaternion&& other)=default;
 
 };
-const Quaternion<double> i_(0,1,0,0);
-const Quaternion<double> j_(0,1,0,0);
-const Quaternion<double> k_(0,1,0,0);
-
 }
 
 
@@ -533,7 +525,7 @@ Quaternion<qScalar_> Quaternion<qScalar_>::operator+(const Quaternion& other) co
  * @return A quaternion representing the sum of the calling quaternion and the other quaternion.
  */
 template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator+(Quaternion&& other) const noexcept {other.vals_ += vals_; return std::move(other);}
+Quaternion<qScalar_> Quaternion<qScalar_>::operator+(Quaternion&& other) const noexcept {return std::move(other += *this);}
 
 /**
  * @brief Calculates the subtraction of another quaternion from the calling quaternion.
@@ -557,7 +549,7 @@ Quaternion<qScalar_> Quaternion<qScalar_>::operator-(const Quaternion& other) co
  * @return A quaternion representing the result of the calling quaternion subtracting the other quaternion.
  */
 template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator-(Quaternion&& other) const noexcept {other.vals_ = vals_ - other.vals_; return std::move(other);}
+Quaternion<qScalar_> Quaternion<qScalar_>::operator-(Quaternion&& other) const noexcept {return std::move(-other += *this);}
 
 /**
  * @brief Calculates the product of the calling quaternion and another quaternion.
@@ -581,7 +573,7 @@ Quaternion<qScalar_> Quaternion<qScalar_>::operator*(const Quaternion& other) co
  * @return A quaternion representing the product of the calling quaternion and the other quaternion.
  */
 template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator*(Quaternion&& other) const noexcept {other.vals_ = hamiplus() * other.vals_; return std::move(other);}
+Quaternion<qScalar_> Quaternion<qScalar_>::operator*(Quaternion&& other) const noexcept {return Quaternion<qScalar_>(other.haminus() * vals_);}
 
 /**
  * @brief Calculates the product of the calling quaternion and a scalar.
@@ -593,7 +585,7 @@ Quaternion<qScalar_> Quaternion<qScalar_>::operator*(Quaternion&& other) const n
  * @return A quaternion representing the product of the calling quaternion and the scalar.
  */
 template<typename qScalar_>
-template<typename Scalar_>
+template<typename Scalar_> 
 Quaternion<qScalar_> Quaternion<qScalar_>::operator*(const Scalar_& scalar) const noexcept {return Quaternion<qScalar_>(vals_ * scalar);}
 
 /**
@@ -606,7 +598,7 @@ Quaternion<qScalar_> Quaternion<qScalar_>::operator*(const Scalar_& scalar) cons
  * @return A quaternion representing the result of the calling quaternion divided by the scalar.
  */
 template<typename qScalar_>
-template<typename Scalar_>
+template<typename Scalar_> 
 Quaternion<qScalar_> Quaternion<qScalar_>::operator/(const Scalar_& scalar) const noexcept {return Quaternion<qScalar_>(vals_ / scalar);}
 
 /**

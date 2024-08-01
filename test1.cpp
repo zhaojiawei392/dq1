@@ -1,6 +1,6 @@
 #include "Quaternion.hpp"
-#include "DualNumber.hpp"
 #include "DualQuaternion.hpp"
+#include "Pose.hpp"
 #include <iostream>
 
 using namespace dq1;
@@ -8,9 +8,11 @@ using q = Quaternion<double>;
 using pq = PureQuaternion<double>;
 using uq = UnitQuaternion<double>;
 using upq = UnitPureQuaternion<double>;
-using dn = DualNumber<double>;
-using dnq = DualNumber<Quaternion<double>>;
 using dq = DualQuaternion<double>;
+using rot = Rotation<double>;
+using trans = Translation<double>;
+using uaxis = UnitAxis<double>;
+using pose = Pose<double>;
 
 void print(const q& qx)
 {
@@ -62,9 +64,6 @@ void test_constuctor()
 int main()
 {
     test_constuctor();
-    dn dn0;
-    dnq dnq0;
-    std::cout <<dn0 << dnq0;
     Vec4d v1({1,2,3,4});
     Vec4d v2({4,3,2,1});
     std::cout <<v1.dot(v2);
@@ -80,5 +79,19 @@ int main()
     dq dq4(q1, q2);
  
     std::cout <<dq0 << dq1<<dq2<<dq3<<dq4;
+
+    // uaxis axis0{0,1,0};
+    // rot r0{axis0.vec3(), 60*M_PI/180};
+    // trans t1{1,2,3};
+    // pose p0 = pose::build_from(r0, t1);
+    // pose p1 = pose::build_from(p0, r0, t1, p0, t1, r0);
+
+    // std::cout <<axis0 << "\n"
+    //             <<r0 << "\n"
+    //             <<t1 << "\n"
+    //             <<p0 << "\n"
+    //             <<p1 << "\n";
+
+
     return 0;
 }
