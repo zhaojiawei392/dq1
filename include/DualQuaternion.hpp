@@ -35,25 +35,22 @@ public:
     DualQuaternion& operator-=(const DualQuaternion& other) noexcept;
     DualQuaternion& operator*=(const DualQuaternion& other) noexcept;
     template<typename Scalar_>
-    DualQuaternion& operator*=(const Scalar_& scalar) noexcept;
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion&> 
+    operator*=(const Scalar_& scalar) noexcept;
     template<typename Scalar_>
-    DualQuaternion& operator/=(const Scalar_& scalar) noexcept;
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion&> 
+    operator/=(const Scalar_& scalar) noexcept;
     DualQuaternion& normalize() noexcept;
 
     // Const operator    
     
     DualQuaternion operator+(const DualQuaternion& other) const noexcept;
-    DualQuaternion operator+(DualQuaternion&& other) const noexcept;
     DualQuaternion operator-(const DualQuaternion& other) const noexcept;
-    DualQuaternion operator-(DualQuaternion&& other) const noexcept;
-    DualQuaternion operator*(const DualQuaternion& other) const noexcept;
-    DualQuaternion operator*(DualQuaternion&& other) const noexcept;
     template<typename Scalar_>
-    DualQuaternion operator*(const Scalar_& scalar) const noexcept;
-    template<typename Scalar_>
-    DualQuaternion operator/(const Scalar_& scalar) const noexcept;
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion> 
+    operator/(const Scalar_& scalar) const noexcept;
     DualQuaternion operator-() const noexcept;
-    dqScalar_ operator[](dqScalar_ index) const;
+    dqScalar_ operator[](int index) const;
     bool operator==(const DualQuaternion& other) const noexcept;
     bool operator!=(const DualQuaternion& other) const noexcept; 
     operator std::string() const;
@@ -66,7 +63,8 @@ public:
     DualQuaternion ln() const noexcept;
     DualQuaternion exp() const noexcept;
     template<typename Scalar_>
-    DualQuaternion pow(const Scalar_& index) const noexcept;
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion> 
+    pow(const Scalar_& index) const noexcept;
     DualQuaternion normalized() const noexcept;
     Mat8<dqScalar_> hamiplus() const noexcept;
     Mat8<dqScalar_> haminus() const noexcept;
@@ -78,10 +76,14 @@ public:
     
     // Friend functions
 
-    template<typename Scalar_>
-    friend DualQuaternion<Scalar_> operator*(const Scalar_& scalar, const DualQuaternion<Scalar_>& dq);
-    template<typename Scalar_>
-    friend DualQuaternion<Scalar_> operator*(const Scalar_& scalar, DualQuaternion<Scalar_>&& dq);    
+    template<typename fScalar_>
+    friend DualQuaternion<fScalar_> operator*(const DualQuaternion<fScalar_>& dq1, const DualQuaternion<fScalar_>& dq2) noexcept;
+    template<typename Scalar_, typename fScalar_>
+    friend std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion<fScalar_>> 
+    operator*(const DualQuaternion<fScalar_>& dq, const Scalar_& scalar) noexcept;
+    template<typename Scalar_, typename fScalar_>
+    friend std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion<fScalar_>>
+    operator*(const Scalar_& scalar, const DualQuaternion<fScalar_>& dq) noexcept;
     template<typename Scalar_>
     friend std::ostream& operator<<(std::ostream& os, const DualQuaternion<Scalar_>& dq);
 
@@ -133,26 +135,19 @@ namespace dq1
 // Friend functions
 
 
-/**
- * @brief Multiply a scalar with a DualQuaternion.
- * @param scalar The scalar to multiply.
- * @param quaternion The DualQuaternion to multiply with.
- * @return A new DualQuaternion resulting from the multiplication.
- */
-template<typename Scalar_>
-DualQuaternion<Scalar_> operator*(const Scalar_& scalar, const DualQuaternion<Scalar_>& dq) {
-    return dq * scalar;
+template<typename fScalar_>
+DualQuaternion<fScalar_> operator*(const DualQuaternion<fScalar_>& dq1, const DualQuaternion<fScalar_>& dq2) noexcept{
+    return DualQuaternion<fScalar_>(dq1.primary_ * dq2.primary_, dq1.primary_ * dq2.dual_ + dq1.dual_ * dq2.primary_);
 }
-
-/**
- * @brief Multiply a scalar with a rvalue DualQuaternion.
- * @param scalar The scalar to multiply.
- * @param quaternion The rvalue DualQuaternion to multiply with.
- * @return A new DualQuaternion resulting from the multiplication.
- */
-template<typename Scalar_>
-DualQuaternion<Scalar_> operator*(const Scalar_& scalar, DualQuaternion<Scalar_>&& dq) {
-    return std::move(dq *= scalar);
+template<typename Scalar_, typename fScalar_>
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion<fScalar_>>
+operator*(const DualQuaternion<fScalar_>& dq, const Scalar_& scalar) noexcept{
+    return DualQuaternion<fScalar_>(dq.primary_ * scalar, dq.dual_ * scalar);
+}
+template<typename Scalar_, typename fScalar_> 
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion<fScalar_>>
+operator*(const Scalar_& scalar, const DualQuaternion<fScalar_>& dq) noexcept{
+    return DualQuaternion<fScalar_>(dq.primary_ * scalar, dq.dual_ * scalar);
 }
 
 /**
@@ -271,7 +266,8 @@ DualQuaternion<dqScalar_>& DualQuaternion<dqScalar_>::operator*=(const DualQuate
 
 template<typename dqScalar_>
 template<typename Scalar_>
-DualQuaternion<dqScalar_>& DualQuaternion<dqScalar_>::operator*=(const Scalar_& scalar) noexcept{
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion<dqScalar_>&> 
+DualQuaternion<dqScalar_>::operator*=(const Scalar_& scalar) noexcept{
     primary_ *= scalar;
     dual_ *= scalar;
     return *this;
@@ -279,7 +275,8 @@ DualQuaternion<dqScalar_>& DualQuaternion<dqScalar_>::operator*=(const Scalar_& 
 
 template<typename dqScalar_>
 template<typename Scalar_>
-DualQuaternion<dqScalar_>& DualQuaternion<dqScalar_>::operator/=(const Scalar_& scalar) noexcept{
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion<dqScalar_>&> 
+DualQuaternion<dqScalar_>::operator/=(const Scalar_& scalar) noexcept{
     primary_ /= scalar;
     dual_ /= scalar;
     return *this;
@@ -304,33 +301,13 @@ DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator+(const DualQuatern
     return DualQuaternion<dqScalar_>(primary_ + other.primary_, dual_ + other.dual_);
 }
 template<typename dqScalar_>
-DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator+(DualQuaternion<dqScalar_>&& other) const noexcept{
-    return std::move(other += *this);
-}
-template<typename dqScalar_>
 DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator-(const DualQuaternion<dqScalar_>& other) const noexcept{
     return DualQuaternion<dqScalar_>(primary_ - other.primary_, dual_ - other.dual_);
 }
 template<typename dqScalar_>
-DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator-(DualQuaternion<dqScalar_>&& other) const noexcept{
-    return std::move(-other += *this);
-}
-template<typename dqScalar_>
-DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator*(const DualQuaternion<dqScalar_>& other) const noexcept{
-    return DualQuaternion<dqScalar_>(primary_ * other.primary_, primary_ * other.dual_ + dual_ * other.primary_);
-}
-template<typename dqScalar_>
-DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator*(DualQuaternion<dqScalar_>&& other) const noexcept{
-    return DualQuaternion<dqScalar_>(primary_ * other.primary_, primary_ * other.dual_ + dual_ * other.primary_);
-}
-template<typename dqScalar_>
 template<typename Scalar_>
-DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator*(const Scalar_& scalar) const noexcept{
-    return DualQuaternion<dqScalar_>(primary_ * scalar, dual_ * scalar);
-}
-template<typename dqScalar_>
-template<typename Scalar_>
-DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator/(const Scalar_& scalar) const noexcept{
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion<dqScalar_>> 
+DualQuaternion<dqScalar_>::operator/(const Scalar_& scalar) const noexcept{
     return DualQuaternion<dqScalar_>(primary_ / scalar, dual_ / scalar);
 }
 template<typename dqScalar_>
@@ -339,7 +316,7 @@ DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::operator-() const noexcept{
 }
 
 template<typename dqScalar_>
-dqScalar_ DualQuaternion<dqScalar_>::operator[](dqScalar_ index) const{
+dqScalar_ DualQuaternion<dqScalar_>::operator[](int index) const{
     return vec8()[index];
 }
 template<typename dqScalar_>
@@ -412,7 +389,8 @@ DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::exp() const noexcept {
 
 template<typename dqScalar_>
 template<typename Scalar_>
-DualQuaternion<dqScalar_> DualQuaternion<dqScalar_>::pow(const Scalar_& index) const noexcept{
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion<dqScalar_>>
+DualQuaternion<dqScalar_>::pow(const Scalar_& index) const noexcept{
 
 }
 

@@ -70,12 +70,12 @@ void test5(pdq x)
 int main()
 {
     
-    pdq q1(3,4,5);
-    pdq q2(6,7,8);
+    // pdq q1(3,4,5);
+    // pdq q2(6,7,8);
 
-    std::cout <<q1*q2.conj() << "\n" << q2*q1.conj();
+    // std::cout <<q1*q2.conj() << "\n" << q2*q1.conj();
 
-    DQ q3(dq1::Vec3d({1,2,3}), 0.5*M_PI, 2);
+    // DQ q3(dq1::Vec3d({1,2,3}), 0.5*M_PI, 2);
 
 
 

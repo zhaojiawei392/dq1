@@ -5,7 +5,7 @@
 #include <eigen3/Eigen/Dense>
 #include <iomanip>
 #include <cmath>
-#include <concepts>
+#include <type_traits>
 
 namespace dq1
 {
@@ -38,24 +38,21 @@ public:
     Quaternion& operator+=(const Quaternion& other) noexcept;
     Quaternion& operator-=(const Quaternion& other) noexcept;
     Quaternion& operator*=(const Quaternion& other) noexcept;
+    template<typename Scalar_> 
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion&>
+    operator*=(const Scalar_& scalar) noexcept;
     template<typename Scalar_>
-    Quaternion& operator*=(const Scalar_& scalar) noexcept;
-    template<typename Scalar_>
-    Quaternion& operator/=(const Scalar_& scalar) noexcept;
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion&>
+    operator/=(const Scalar_& scalar) noexcept;
     Quaternion& normalize();
 
     // const operators
 
     Quaternion operator+(const Quaternion& other) const noexcept;
-    Quaternion operator+(Quaternion&& other) const noexcept;
     Quaternion operator-(const Quaternion& other) const noexcept;
-    Quaternion operator-(Quaternion&& other) const noexcept;
-    Quaternion operator*(const Quaternion& other) const noexcept;
-    Quaternion operator*(Quaternion&& other) const noexcept;
     template<typename Scalar_>
-    Quaternion operator*(const Scalar_& scalar) const noexcept;
-    template<typename Scalar_>
-    Quaternion operator/(const Scalar_& scalar) const noexcept;
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion>
+    operator/(const Scalar_& scalar) const noexcept;
     Quaternion operator-() const noexcept;
     bool operator==(const Quaternion& other) const noexcept;
     bool operator!=(const Quaternion& other) const noexcept; 
@@ -82,20 +79,24 @@ public:
     Vec3<qScalar_> vec3() const noexcept;
     Vec4<qScalar_> vec4() const noexcept;
 
-    // Concept constraints
+    // Constraints
     template<typename Scalar_>
-    Quaternion pow(const Scalar_& index) const noexcept;
-
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion>
+    pow(const Scalar_& index) const noexcept;
 
 
     // Friends "const"
     
+    template<typename fScalar_>
+    friend Quaternion<fScalar_> operator*(const Quaternion<fScalar_>& quaternion1, const Quaternion<fScalar_>& quaternion2) noexcept;
+    template<typename Scalar_, typename fScalar_>
+    friend std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<fScalar_>>
+    operator*(const Quaternion<fScalar_>& quaternion, const Scalar_& scalar) noexcept;
+    template<typename Scalar_, typename fScalar_> 
+    friend std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<fScalar_>>
+    operator*(const Scalar_& scalar, const Quaternion<fScalar_>& quaternion) noexcept;
     template<typename Scalar_>
-    friend Quaternion<Scalar_> operator*(const Scalar_& scalar, const Quaternion<Scalar_>& quaternion);
-    template<typename Scalar_>
-    friend Quaternion<Scalar_> operator*(const Scalar_& scalar, Quaternion<Scalar_>&& quaternion);    
-    template<typename Scalar_>
-    friend std::ostream& operator<<(std::ostream& os, const Quaternion<Scalar_>& q);
+    friend std::ostream& operator<<(std::ostream& os, const Quaternion<Scalar_>& quaternion);
     template<typename Scalar_>
     friend void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) noexcept;
     template<typename Scalar_>
@@ -124,9 +125,8 @@ public:
     PureQuaternion& operator=(PureQuaternion&& other)=default;
 
     // operators const
-
-    bool operator==(const PureQuaternion& other) const noexcept;
-    bool operator!=(const PureQuaternion& other) const noexcept; 
+    PureQuaternion operator+(const PureQuaternion& pq) const noexcept;
+    PureQuaternion operator-(const PureQuaternion& pq) const noexcept;
 
 };
 
@@ -153,6 +153,10 @@ public:
     UnitQuaternion& operator=(const UnitQuaternion& other)=default;
     UnitQuaternion& operator=(UnitQuaternion&& other)=default;
             virtual ~UnitQuaternion()=default;
+    
+    // operators const
+    UnitQuaternion operator*(const UnitQuaternion& uq) const noexcept;
+    UnitQuaternion operator/(const UnitQuaternion& uq) const noexcept;
 
 };
 
@@ -202,32 +206,19 @@ namespace dq1
 
 // Helper Functions *************************************************************************
 
-/**
- * @brief Multiplies a scalar by a quaternion.
- * 
- * This operator overload multiplies each component of a quaternion by a scalar.
- * 
- * @param scalar The scalar value to multiply by.
- * @param quaternion The quaternion to be multiplied.
- * @return A quaternion which is the result of the scalar multiplication.
- */
-template<typename Scalar_>
-Quaternion<Scalar_> operator*(const Scalar_& scalar, const Quaternion<Scalar_>& quaternion) {
-    return quaternion * scalar;
+template<typename fScalar_>
+Quaternion<fScalar_> operator*(const Quaternion<fScalar_>& quaternion1, const Quaternion<fScalar_>& quaternion2) noexcept{
+    return Quaternion<fScalar_>(quaternion1.hamiplus() * quaternion2.vals_); 
 }
-
-/**
- * @brief Multiplies a scalar by a quaternion.
- * 
- * This operator overload multiplies each component of a quaternion by a scalar.
- * 
- * @param scalar The scalar value to multiply by.
- * @param quaternion The quaternion to be multiplied.
- * @return A quaternion which is the result of the scalar multiplication.
- */
-template<typename Scalar_>
-Quaternion<Scalar_> operator*(const Scalar_& scalar, Quaternion<Scalar_>&& quaternion) {
-    return std::move(quaternion *= scalar);
+template<typename Scalar_, typename fScalar_>
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<fScalar_>> 
+operator*(const Quaternion<fScalar_>& quaternion, const Scalar_& scalar) noexcept{
+    return Quaternion<fScalar_>(quaternion.vals_ * scalar);
+}
+template<typename Scalar_, typename fScalar_>
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<fScalar_>>
+operator*(const Scalar_& scalar, const Quaternion<fScalar_>& quaternion) noexcept {
+    return Quaternion<fScalar_>(quaternion.vals_ * scalar);
 }
 
 /**
@@ -264,7 +255,7 @@ void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<Scalar_>& qu
     if (std::abs(quaternion.vals_[0]) > OMIT_THRESHOLD)
         std::cout << "Warning: " << std::fixed << std::setprecision(PRINT_PRECISION) << 
                      std::move(calling_fn) << " omitted a real part " << quaternion.vals_[0] << ".\n";
-    quaternion.vals_[0] = 0.;
+    quaternion.vals_[0] = 0;
 }
 
 /**
@@ -473,7 +464,8 @@ Quaternion<qScalar_>& Quaternion<qScalar_>::operator*=(const Quaternion& other) 
  */
 template<typename qScalar_>
 template<typename Scalar_>
-Quaternion<qScalar_>& Quaternion<qScalar_>::operator*=(const Scalar_& scalar) noexcept {vals_ *= scalar; return *this;}
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>&> 
+Quaternion<qScalar_>::operator*=(const Scalar_& scalar) noexcept {vals_ *= scalar; return *this;}
 
 /**
  * @brief Divides the calling quaternion by a scalar.
@@ -486,7 +478,8 @@ Quaternion<qScalar_>& Quaternion<qScalar_>::operator*=(const Scalar_& scalar) no
  */
 template<typename qScalar_>
 template<typename Scalar_>
-Quaternion<qScalar_>& Quaternion<qScalar_>::operator/=(const Scalar_& scalar) noexcept {vals_ /= scalar; return *this;}
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>&> 
+Quaternion<qScalar_>::operator/=(const Scalar_& scalar) noexcept {vals_ /= scalar; return *this;}
 
 /**
  * @brief Normalize the calling quaternion.
@@ -516,18 +509,6 @@ template<typename qScalar_>
 Quaternion<qScalar_> Quaternion<qScalar_>::operator+(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(vals_ + other.vals_);}
 
 /**
- * @brief Calculates the sum of the calling quaternion and another quaternion.
- * 
- * This function computes the sum of the calling quaternion and another quaternion
- * passed as an rvalue.
- * 
- * @param other The other quaternion to be added to the calling quaternion.
- * @return A quaternion representing the sum of the calling quaternion and the other quaternion.
- */
-template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator+(Quaternion&& other) const noexcept {return std::move(other += *this);}
-
-/**
  * @brief Calculates the subtraction of another quaternion from the calling quaternion.
  * 
  * This function computes the result of subtracting another quaternion, passed as an lvalue,
@@ -540,55 +521,6 @@ template<typename qScalar_>
 Quaternion<qScalar_> Quaternion<qScalar_>::operator-(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(vals_ - other.vals_);}
 
 /**
- * @brief Calculates the subtraction of another quaternion from the calling quaternion.
- * 
- * This function computes the result of subtracting another quaternion, passed as an rvalue,
- * from the calling quaternion.
- * 
- * @param other The other quaternion to be subtracted from the calling quaternion.
- * @return A quaternion representing the result of the calling quaternion subtracting the other quaternion.
- */
-template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator-(Quaternion&& other) const noexcept {return std::move(-other += *this);}
-
-/**
- * @brief Calculates the product of the calling quaternion and another quaternion.
- * 
- * This function computes the result of multiplying the calling quaternion by another quaternion
- * passed as an lvalue.
- * 
- * @param other The other quaternion to multiply with the calling quaternion.
- * @return A quaternion representing the product of the calling quaternion and the other quaternion.
- */
-template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator*(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(other.haminus() * vals_);}
-
-/**
- * @brief Calculates the product of the calling quaternion and another quaternion.
- * 
- * This function computes the result of multiplying the calling quaternion by another quaternion
- * passed as an rvalue.
- * 
- * @param other The other quaternion to multiply with the calling quaternion.
- * @return A quaternion representing the product of the calling quaternion and the other quaternion.
- */
-template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator*(Quaternion&& other) const noexcept {return Quaternion<qScalar_>(other.haminus() * vals_);}
-
-/**
- * @brief Calculates the product of the calling quaternion and a scalar.
- * 
- * This function computes the result of multiplying the calling quaternion by a scalar
- * passed as an lvalue.
- * 
- * @param scalar The scalar to multiply with the calling quaternion.
- * @return A quaternion representing the product of the calling quaternion and the scalar.
- */
-template<typename qScalar_>
-template<typename Scalar_> 
-Quaternion<qScalar_> Quaternion<qScalar_>::operator*(const Scalar_& scalar) const noexcept {return Quaternion<qScalar_>(vals_ * scalar);}
-
-/**
  * @brief Calculates the division of the calling quaternion by a scalar.
  * 
  * This function computes the result of dividing the calling quaternion by a scalar
@@ -599,7 +531,8 @@ Quaternion<qScalar_> Quaternion<qScalar_>::operator*(const Scalar_& scalar) cons
  */
 template<typename qScalar_>
 template<typename Scalar_> 
-Quaternion<qScalar_> Quaternion<qScalar_>::operator/(const Scalar_& scalar) const noexcept {return Quaternion<qScalar_>(vals_ / scalar);}
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>> 
+Quaternion<qScalar_>::operator/(const Scalar_& scalar) const noexcept {return Quaternion<qScalar_>(vals_ / scalar);}
 
 /**
  * @brief Calculates the negation of the calling quaternion.
@@ -769,7 +702,8 @@ Quaternion<qScalar_> Quaternion<qScalar_>::exp() const noexcept
  */
 template<typename qScalar_>
 template<typename Scalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::pow(const Scalar_& index) const noexcept 
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>> 
+Quaternion<qScalar_>::pow(const Scalar_& index) const noexcept 
 {
     return Quaternion<qScalar_>(rotation_vec(), index * rotation_angle(), std::pow(norm(), index));
 } 
@@ -1005,33 +939,7 @@ PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::operator=(Quaternion<qScalar
     return *this;
 }
 
-/**
- * @brief Compares if two pure quaternions are equal.
- * 
- * This operator overload allows comparing two pure quaternions for equality.
- * Two pure quaternions are equal if their vector components (x, y, z) are equal.
- * 
- * @param other The other pure quaternion to compare with.
- * @return True if they are equal, false otherwise.
- */
-template<typename qScalar_>
-bool PureQuaternion<qScalar_>::operator==(const PureQuaternion<qScalar_>& other) const noexcept {
-    return Quaternion<qScalar_>::vec3() == other.vec3();
-}
 
-/**
- * @brief Compares if two pure quaternions are not equal.
- * 
- * This operator overload allows comparing two pure quaternions for inequality.
- * Two pure quaternions are not equal if their vector components (x, y, z) are not equal.
- * 
- * @param other The other pure quaternion to compare with.
- * @return True if they are not equal, false otherwise.
- */
-template<typename qScalar_>
-bool PureQuaternion<qScalar_>::operator!=(const PureQuaternion<qScalar_>& other) const noexcept {
-    return Quaternion<qScalar_>::vec3() != other.vec3();
-}
 
 
 // ***********************************************************************************************************************

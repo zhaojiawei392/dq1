@@ -9,6 +9,7 @@ using pq = PureQuaternion<double>;
 using uq = UnitQuaternion<double>;
 using upq = UnitPureQuaternion<double>;
 using dq = DualQuaternion<double>;
+using udq = UnitDualQuaternion<double>;
 using rot = Rotation<double>;
 using trans = Translation<double>;
 using uaxis = UnitAxis<double>;
@@ -63,14 +64,20 @@ void test_constuctor()
 
 int main()
 {
-    test_constuctor();
+    // test_constuctor();
     Vec4d v1({1,2,3,4});
     Vec4d v2({4,3,2,1});
-    std::cout <<v1.dot(v2);
+    // std::cout <<v1.dot(v2);
 
     q q0;
     q q1(v1);
     q q2(v2);
+
+    q q3 = q1 * q2;
+    q q4 = 5 * q1;
+    q q5 = q4 * 5;
+
+    std::cout << q3<<q4<<q5;
 
     dq dq0;
     dq dq1;
@@ -78,7 +85,26 @@ int main()
     dq dq3(dq2);
     dq dq4(q1, q2);
  
-    std::cout <<dq0 << dq1<<dq2<<dq3<<dq4;
+    // std::cout <<dq0 << dq1<<dq2<<dq3<<dq4;
+
+    dq dq5 = dq3 * dq4;
+    dq dq6 = 5 * dq5;
+    dq dq7 = 6. * dq6;
+
+    udq udq0(1,2,3,4,5,6,7,8);
+    udq udq1(9,8,7,6,5,4,3,1);
+
+    dq dq8 = udq0 * udq1;
+
+    std::cout <<dq8;
+
+    pose p0(1,2,3,4,5,6,7,8);
+    pose p1(9,8,7,6,5,4,3,1);
+
+    dq p2 = p0 * p1;
+
+    std::cout << dq5<<dq6<<dq7;
+
 
     // uaxis axis0{0,1,0};
     // rot r0{axis0.vec3(), 60*M_PI/180};
