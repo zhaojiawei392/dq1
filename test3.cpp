@@ -17,9 +17,9 @@ int main()
     std::cout << "r2: " << r2 << "\n";
     std::cout << "r3: " << r3 << "\n";
 
-    Trans t1{1,2,3};
-    Trans t2{4,5,6};
-    Trans t3{7,8,9};
+    Tslt t1{1,2,3};
+    Tslt t2{4,5,6};
+    Tslt t3{7,8,9};
 
     std::cout << "t1: " << t1 << "\n";
     std::cout << "t2: " << t2 << "\n";
