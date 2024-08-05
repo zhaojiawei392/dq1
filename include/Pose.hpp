@@ -1387,19 +1387,28 @@ public:
     explicit UnitDualQuaternion(Vec8<qScalar_>&& vec8);
     UnitDualQuaternion(const qScalar_& h0, const qScalar_& h1=0, const qScalar_& h2=0, const qScalar_& h3=0, const qScalar_& h4=0, const qScalar_& h5=0, const qScalar_& h6=0, const qScalar_& h7=0);
     
-    explicit UnitDualQuaternion(const DualQuaternion<qScalar_>& q);
-    explicit UnitDualQuaternion(DualQuaternion<qScalar_>&& q);
-    UnitDualQuaternion& operator=(const DualQuaternion<qScalar_>& q);
-    UnitDualQuaternion& operator=(DualQuaternion<qScalar_>&& q);
+    explicit UnitDualQuaternion(const DualQuaternion<qScalar_>& dq);
+    explicit UnitDualQuaternion(DualQuaternion<qScalar_>&& dq);
+    UnitDualQuaternion& operator=(const DualQuaternion<qScalar_>& dq);
+    UnitDualQuaternion& operator=(DualQuaternion<qScalar_>&& dq);
 
 
-    template<typename First_>
-    static UnitDualQuaternion build_from(First_&& first){
-        return UnitDualQuaternion(build_from(std::forward<First_>(first)));
-    } /// remain unsolved
+
     template<typename First_, typename... Args_>
     static UnitDualQuaternion build_from(First_&& first, Args_&&... args){
-        return UnitDualQuaternion(build_from(std::forward<First_>(first)) * build_from(std::forward<Args_>(args)...));
+        return UnitDualQuaternion(build_from(std::move(first)) * build_from(std::move(args)...));
+    }
+    template<typename First_, typename... Args_>
+    static UnitDualQuaternion build_from(First_&& first, const Args_&... args){
+        return UnitDualQuaternion(build_from(std::move(first)) * build_from(args...));
+    }
+    template<typename First_, typename... Args_>
+    static UnitDualQuaternion build_from(const First_& first, Args_&&... args){
+        return UnitDualQuaternion(build_from(first) * build_from(std::move(args)...));
+    }
+    template<typename First_, typename... Args_>
+    static UnitDualQuaternion build_from(const First_& first, const Args_&... args){
+        return UnitDualQuaternion(build_from(first) * build_from(args...));
     }
     static UnitDualQuaternion build_from(const UnitQuaternion<qScalar_>& rotation){
         return UnitDualQuaternion(rotation);
