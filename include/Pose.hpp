@@ -1394,22 +1394,22 @@ public:
 
 
 
+    // template<typename First_, typename... Args_>
+    // static UnitDualQuaternion build_from(First_&& first, Args_&&... args){
+    //     return UnitDualQuaternion(build_from(std::move(first)) * build_from(std::move(args)...));
+    // }
+    // template<typename First_, typename... Args_>
+    // static UnitDualQuaternion build_from(First_&& first, const Args_&... args){
+    //     return UnitDualQuaternion(build_from(std::move(first)) * build_from(args...));
+    // }
+    // template<typename First_, typename... Args_>
+    // static UnitDualQuaternion build_from(const First_& first, Args_&&... args){
+    //     return UnitDualQuaternion(build_from(first) * build_from(std::move(args)...));
+    // }
     template<typename First_, typename... Args_>
     static UnitDualQuaternion build_from(First_&& first, Args_&&... args){
-        return UnitDualQuaternion(build_from(std::move(first)) * build_from(std::move(args)...));
-    }
-    template<typename First_, typename... Args_>
-    static UnitDualQuaternion build_from(First_&& first, const Args_&... args){
-        return UnitDualQuaternion(build_from(std::move(first)) * build_from(args...));
-    }
-    template<typename First_, typename... Args_>
-    static UnitDualQuaternion build_from(const First_& first, Args_&&... args){
-        return UnitDualQuaternion(build_from(first) * build_from(std::move(args)...));
-    }
-    template<typename First_, typename... Args_>
-    static UnitDualQuaternion build_from(const First_& first, const Args_&... args){
-        return UnitDualQuaternion(build_from(first) * build_from(args...));
-    }
+        return UnitDualQuaternion(build_from(std::forward<First_>(first)) * build_from(std::forward<Args_>(args)...));
+    }  //????
     static UnitDualQuaternion build_from(const UnitQuaternion<qScalar_>& rotation){
         return UnitDualQuaternion(rotation);
     }
@@ -1880,12 +1880,17 @@ using T_Axis = UnitPureQuaternion<Scalar_>;
 template<typename Scalar_>
 using T_Pose = UnitDualQuaternion<Scalar_>; 
 
-}
-
-using Rot = dq1::T_Rotation<double>;
-using Tslt = dq1::T_Translation<double>;
-using Axis = dq1::T_Axis<double>;
-using Pose = dq1::T_Pose<double>;
+using Rot = T_Rotation<double>;
+using Tslt = T_Translation<double>;
+using Axis = T_Axis<double>;
+using Pose = T_Pose<double>;
 const Axis i_(1.,0,0);
 const Axis j_(0,1.,0);
 const Axis k_(0,0,1.);
+const Mat4d C4_{1, 0,0,0,
+                0,-1,0,0,
+                0,0,-1,0,
+                0,0,0,-1};
+const Mat8d C8_ = (Mat8d() << C4_, Mat4d::Zero(),
+                            Mat4d::Zero(), C4_).finished();
+}

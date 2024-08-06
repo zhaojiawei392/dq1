@@ -5,6 +5,7 @@
 
 int main()
 {   
+    using namespace dq1;
     std::cout << "i: " << i_ << "\n";
     std::cout << "j: " << j_ << "\n";
     std::cout << "k: " << k_ << "\n";
