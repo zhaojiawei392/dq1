@@ -70,6 +70,8 @@ int main()
     
     // std::cout <<vec8<<'\n';
 
+    Quat quat0(1);
+    Quat quat1(1);
 
 
     Rot r_theta{k_, theta+pos_};
@@ -77,8 +79,15 @@ int main()
     Tslt ta{a, 0, 0};
     Rot r_alpha{i_, alpha};
     Pose pp0 =  Pose::build_from(std::move(r_theta), std::move(td), std::move(ta), std::move(r_alpha));
+    DQ dq1(1);
+    DQ dq2(2);
+    PureQuaternion<double> pq0;
+    UnitPureQuaternion<double> upq0;
+    UnitQuaternion<double> uq0;
 
+    uq0 *= uq0;
 
+    Pose pp2;
 
         double theta_real = cos( 0.5* (theta + pos_) );
         double theta_im = sin( 0.5* (theta + pos_) );
@@ -98,4 +107,5 @@ int main()
     std::cout << pp0 << "\n" << pp1 << "\n";
 
     std::cout << "  " <<  (pp0 - pp1) <<  "  ";
+
 }

@@ -8,41 +8,65 @@ namespace dq1
 namespace kinematics
 {
 
+const Vecxd _closest_invariant_rotation_error(const Rot& r, const Rot& rd)
+{
+    Rot er_plus = Rot(r.conj() * rd - 1);
+    Rot er_minus = Rot(r.conj() * rd + 1);
+
+    double er_plus_norm  = er_plus.norm();
+    double er_minus_norm = er_minus.norm();
+
+    double invariant;
+    if(er_plus_norm<er_minus_norm)
+    {
+        // invariant = 1;
+        return er_plus.vec4();
+    }
+    else
+    {
+        return er_minus.vec4();
+        // invariant = -1;
+    }
+}
+
 class Joint{
 protected:
     double pos_; // joint position
-    Vec4d limits_; // {max position, max speed, min position, min speed}
-    Pose fkm_{1}; // forward kinematics, pose transformation from reference to end    
-    Pose base_{1};
-    Pose end_{1};
+    Vec4d limits_; // {max position, min position, max speed, min speed}
+    Pose fkm_; // forward kinematics, pose transformation from reference to end    
     Vec8d jcb_; // jacobian of reference end pose with respect to joint position
+    void _check_limits(){
+        if (limits_[0] < limits_[1] || limits_[2] < limits_[3])
+            throw std::runtime_error("Joint complains about unreasonable joint limits, check if max position limits are all bigger than the min limits.\n");
+    }
+    void _make_position_within_limits(){
+        if (pos_ > limits_[0]) 
+            pos_ = limits_[0];
+        if (pos_ < limits_[1])
+            pos_ = limits_[1];
+    }
 
 public:
 
     // Mutable 
 
     Joint()=delete;
-    Joint(const Vec4d& motion_limits, double position=0): limits_(motion_limits), pos_(position) {
-         //????
+    Joint(const Vec4d& motion_limits, double position=0): limits_(motion_limits), pos_(position), fkm_(1) {
+        _check_limits();
     }
     virtual ~Joint();
 
-    virtual void update(double position)=0;
-    virtual void update(double position, const Pose& base)=0;
-    virtual void update(double position, Pose&& base)=0;
+    virtual void update(double position)noexcept=0;
+    virtual void update_signal(double signal)noexcept=0;
 
     // Const
     virtual Pose calculate_fkm(double position)const =0 ;
     virtual Vec8d calculate_jacobian(double position)const =0 ;
 
-    void set_base(const Pose& base) { base_ = base;}
-    void set_base(Pose&& base) { base_ = std::move(base);}
     double position() const noexcept{ return pos_; }
     Vec4d motion_limits()  const noexcept{ return limits_; }
     Pose fkm() const  noexcept{ return fkm_; }
     Vec8d jacobian() const noexcept{ return jcb_; } 
-    Pose base() const  noexcept{ return base_; }
-    Pose end() const  noexcept{ return end_; }
 };
 
 class RevoluteJoint: public Joint{
@@ -54,26 +78,22 @@ public:
 
     RevoluteJoint()=delete;
     RevoluteJoint(const Vec4d& DH_parameters, const Vec4d& motion_limits, double position=0): Joint(motion_limits, position), DH_params_(DH_parameters){
-
+        update(position);
     }
     virtual ~RevoluteJoint()=default;
 
 
-    virtual void update(double position){
-        fkm_ = calculate_fkm(position);
-        jcb_ = calculate_jacobian(position);
+    virtual void update(double position)noexcept{
+        pos_ = position;
+        _make_position_within_limits();
+        fkm_ = calculate_fkm(pos_);
+        jcb_ = calculate_jacobian(pos_);
     }
-    virtual void update(double position, const Pose& base){
-        base_ = base;
-        fkm_ = calculate_fkm(position);
-        jcb_ = calculate_jacobian(position);
-        end_ = base_ * end_;
-    }
-    virtual void update(double position, Pose&& base){
-        base_ = std::move(base);
-        fkm_ = calculate_fkm(position);
-        jcb_ = calculate_jacobian(position);
-        end_ = base_ * end_;
+    virtual void update_signal(double signal)noexcept{
+        pos_ += signal;
+        _make_position_within_limits();
+        fkm_ = calculate_fkm(pos_);
+        jcb_ = calculate_jacobian(pos_);
     }
 
     // Const
@@ -115,6 +135,7 @@ public:
             0.5 * (theta_dot_real * d * alpha_real - theta_dot_im * a * alpha_im)
         }; // test past
     }
+
 };
 
 class PrismaticJoint: public Joint{
@@ -128,12 +149,7 @@ public:
     PrismaticJoint(const Vec4d& DH_parameters, const Vec4d& motion_limits, double position);
     virtual ~PrismaticJoint()=default;
 
-    virtual void update(double position){}
-    virtual void update(double position, const Pose& base){
-
-    }
-    virtual void update(double position, Pose&& base){}
-
+    virtual void update(double position)noexcept{}
     // Const
     virtual Pose calculate_fkm(double position) const override {
 
@@ -147,97 +163,121 @@ public:
 class SerialManipulator{
 protected:
     std::vector<std::unique_ptr<Joint>> joints_;
+    Pose base_;
+    Pose effector_;
+    Pose abs_end_;
+    std::vector<Pose> joint_poses_; // joint poses + end pose
+    Pose_jcb pose_jacobian_;
+    Rot_jcb r_jacobian_;
+    Tslt_jcb t_jacobian_;
 public:
     SerialManipulator()=delete;
-    SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions){
-        if (DH_params.rows() != 5 || DH_params.cols() == 0 ){
-            throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) complains about DH_params' invalid size (" + std::to_string(DH_params.rows()) + ", " + std::to_string(DH_params.cols()) + "), which should be (5, DOF), where DOF is bigger than 0.\n");
+    SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4, -1>& joint_limits, const Vecxd& joint_positions){
+        if (DH_params.cols() == 0 ){
+            throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) arg0 cols invalid size 0, should be DoF bigger than 0.\n");
         }
         int DOF = DH_params.cols();
-        if (joint_limits.rows() != 4 || joint_limits.cols() != DOF ){
-            throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) complains about joint_limits' invalid size (" + std::to_string(joint_limits.rows()) + ", " + std::to_string(joint_limits.cols()) + "), which should be (5, " + std::to_string(DOF) + ").\n");
-        }
-        if (joint_positions.size() == DOF ){
-            throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) complains about joint_positions' invalid size (" + std::to_string(joint_limits.rows()) + ", " + "), which should be (DOF, " + std::to_string(DOF) + ").\n");
-        }
+        check_size("SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4, -1>& joint_limits, const Vecxd& joint_positions) arg1 cols", "DoF",joint_limits.cols(), DOF);
+        check_size("SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4, -1>& joint_limits, const Vecxd& joint_positions) arg2", "DoF",joint_positions.size(), DOF);
+        
+        joint_poses_.resize(DOF);
+        pose_jacobian_.resize(8, DOF);
+        r_jacobian_.resize(4, DOF);
+        t_jacobian_.resize(4, DOF);
 
+
+        // instantiate remaining joints
         for (int i=0; i<DOF; ++i){
             if (DH_params[4, i] == 0){
                 joints_.push_back(std::make_unique<RevoluteJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i), joint_positions[i]));
             } else if (DH_params[4, i] == 1){
                 joints_.push_back(std::make_unique<PrismaticJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i), joint_positions[i]));
             } else {
-                throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) complains about DH_params' 5-th row member DH_params[4, " + std::to_string(i) + "] = " + std::to_string(DH_params[4,i]) + ", this row should consist of 0: Revolute joint or 1: Prismatic joint.\n");
+                throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) arg0 5-th row DH_params[4, " + std::to_string(i) + "] = " + std::to_string(DH_params[4,i]) + ", this row should consist only of 0 or 1.(0: Revolute joint, 1: Prismatic joint)\n");
             }
         }
-
 
         std::cout << "A Kinematics::SerialManipulator constructed!\n" ;
     }
     virtual ~SerialManipulator()=default;
 
-    void set_reference(const Pose& reference) noexcept{
-        joints_[0]->set_base(reference);
-    }    
-    void set_reference(Pose&& reference) noexcept{
-        joints_[0]->set_base(std::move(reference));
-    }
-    void link(SerialManipulator&& other){
-        for (const auto& joint : other.joints_){
-            joints_.push_back(std::move(joint));
-        }
-    }
+    void set_base(const Pose& base) noexcept{
+        base_ = base;
+    } 
+    void set_effector(const Pose& effector) noexcept{
+        effector_ = effector;
+    } 
 
     void update(const Pose& desired_pose){
 
+
+    update_joint_signals(u);
     }
 
-    Pose calculate_fkm(const Vecxd& joint_positions) const{
-        if (joint_positions.size() != joints_.size()){
-            throw std::range_error("SerialManipulator::calculate_fkm(const Vecxd& joint_positions) complains about joint_positions' size " + std::to_string(joint_positions.size()) + ", which should be " + std::to_string(joints_.size()) + ".\n" );
+    void update_joint_positions(const Vecxd& joint_positions){
+        check_size("update_joint_positions(const Vecxd& joint_positions)", "DoF", joint_positions.size(), joints_.size());
+        
+        joints_[0]->update(joint_positions[0]);
+        joint_poses_[0] = joints_[0]->fkm();
+
+        for (int i=1; i<joints_.size(); ++i){
+            joints_[i]->update(joint_positions[i]);
+            joint_poses_[i] = joint_poses_[i-1] * joints_[i]->fkm();
         }
-        Pose res{joints_[0]->base()};
-        for (int i=0; i<joints_.size(); ++i){
-            res *= joints_[i]->calculate_fkm(joint_positions[i]); // *= operators may introduce floating error cause there are no floating check for such functions
+        abs_end_ = base_ * joint_poses_.back() * effector_;
+        _update_jacobians();
+    }
+
+    void update_joint_signals(const Vecxd& joint_signals){
+        check_size("update_joint_positions(const Vecxd& joint_signals)", "DoF", joint_signals.size(), joints_.size());
+        
+        joints_[0]->update_signal(joint_signals[0]);
+        joint_poses_[0] = joints_[0]->fkm();
+
+        for (int i=1; i<joints_.size(); ++i){
+            joints_[i]->update_signal(joint_signals[i]);
+            joint_poses_[i] = joint_poses_[i-1] * joints_[i]->fkm();
         }
-        return Pose(std::move(res));
+        abs_end_ = base_ * joint_poses_.back() * effector_;
+        _update_jacobians();
     }
 
     Vecxd joint_positions() const noexcept{
         Vecxd res;
-        for (int i=0; i<joints_.size(); ++i){
-            res << joints_[i]->position();
+        for (const auto& joint : joints_){
+            res << joint->position();
         }
         return std::move(res);
     }
     // Vecxd joint_signals() const noexcept;
 private:
-    Matxd _calculate_quadratic_matrix(const Pose& xd)const{
-        const Matxd& J_r_rd = xd.rotation().haminus() * C4_ * 
-        const MatrixXd& J_r_rd = haminus4(rotation(xd)) * C4() * kc_.J_r;
-        const MatrixXd& Ht = (kc_.J_t.transpose() * kc_.J_t) * 2;
-        const MatrixXd& Hr = (J_r_rd.transpose() * J_r_rd) * 2;
-        const MatrixXd& Hj = cfg_.damping_diagonal.asDiagonal();
-        return cfg_.alpha * Ht + (1-cfg_.alpha) * Hr + Hj;
+    Matxd _calculate_quadratic_matrix(const Pose& desired_pose){
+        const Matxd& r_rd_jacobian = desired_pose.rotation().conj().haminus() * r_jacobian_;
+        const Matxd& Ht = (t_jacobian_.transpose() * t_jacobian_) * 2;
+        const Matxd& Hr = (r_rd_jacobian.transpose() * r_rd_jacobian) * 2;
+        const Vecxd& damping_vec = Vecxd::Ones(joints_.size()) * 0.0001;
+        const Matxd& Hj = damping_vec.asDiagonal();
+        return 0.9999 * Ht + (1-0.9999) * Hr + Hj;
     }
-    Matxd _calculate_quadratic_vector(const Pose& xd)const{
-        const MatrixXd& J_r_rd = haminus4(rotation(xd)) * C4() * kc_.J_r;
-        const VectorXd& vec_et = vec4(translation(kc_.x) - translation(xd));
-        const VectorXd& vec_er = __closest_invariant_rotation_error(kc_.x, xd);
-        const VectorXd& ct = 2 * vec_et.transpose() * cfg_.n * kc_.J_t;
-        const VectorXd& cr = 2 * vec_er.transpose() * cfg_.n * J_r_rd;
-        return cfg_.alpha * ct + (1 - cfg_.alpha) * cr;
+    Vecxd _calculate_quadratic_vector(const Pose& desired_pose){
+        const Matxd& r_rd_jacobian = desired_pose.rotation().conj().haminus() * r_jacobian_;
+        const Vecxd& vec_et = (abs_end_.translation() - desired_pose.translation()).vec4();
+        const Vecxd& vec_er = _closest_invariant_rotation_error(abs_end_.rotation(), desired_pose.rotation());
+        const Vecxd& ct = 2 * vec_et.transpose() * 50 * t_jacobian_;
+        const Vecxd& cr = 2 * vec_er.transpose() * 50 * r_rd_jacobian;
+        return 0.9999 * ct + (1-0.9999) * cr;
     }
-    Matxd _calculate_pose_jacobian() const{
-        
-    }
-    Matxd _calculate_rotation_jacobian() const{
+    Matxd _update_jacobians() {
+        for (int i=0; i<joints_.size(); ++i){
+            const Vec8d& pose_jacobian_i = (joint_poses_[i].conj() * joint_poses_.back()).haminus() * joints_[i]->jacobian();
+            pose_jacobian_.col(i) = pose_jacobian_i;
+        }
+        pose_jacobian_ = effector_.haminus() * base_.hamiplus() * pose_jacobian_;
 
-    }
-    Matxd _calculate_translation_jacobian() const{
+        r_jacobian_ = pose_jacobian_.block(0,0,4,joints_.size());
 
+        t_jacobian_ = abs_end_.rotation().conj().haminus() * (pose_jacobian_.block(4,0,4,joints_.size()) * 2 - abs_end_.translation().hamiplus() * r_jacobian_);
     }
-
 
 
 };
