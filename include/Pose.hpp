@@ -18,7 +18,7 @@ void check_size(const std::string& src_info, const std::string& des_info, int sr
 }
 
 #define PRINT_PRECISION 18
-#define OMIT_THRESHOLD 0.00000000001
+#define OMIT_THRESHOLD 0.00000001
 
 template<typename Scalar_, int size>
 using Vec=Eigen::Matrix<Scalar_, size, 1>;
@@ -632,7 +632,7 @@ PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::normalize(){
 
 
 template<typename qScalar_>
-UnitQuaternion<qScalar_>::UnitQuaternion() : Quaternion<qScalar_>(1,0,0,0) {
+UnitQuaternion<qScalar_>::UnitQuaternion() : Quaternion<qScalar_>(1) {
     
 }
 
@@ -905,6 +905,7 @@ public:
 
     // Constructors and Assignments
 
+    UnitDualQuaternion();
     UnitDualQuaternion(const UnitQuaternion<qScalar_>& primary, const Quaternion<qScalar_>& dual);
     UnitDualQuaternion(const UnitQuaternion<qScalar_>& primary, Quaternion<qScalar_>&& dual=Quaternion<qScalar_>());
     UnitDualQuaternion(UnitQuaternion<qScalar_>&& primary, const Quaternion<qScalar_>& dual);
@@ -947,7 +948,7 @@ public:
     template<typename First_, typename... Args_>
     static UnitDualQuaternion build_from(const First_& first, const Args_&... args){
         return UnitDualQuaternion(build_from(first) * build_from(args...));
-    }  //????
+    }  
     static UnitDualQuaternion build_from(const UnitQuaternion<qScalar_>& rotation){
         return UnitDualQuaternion(rotation);
     }
@@ -970,7 +971,6 @@ public:
     UnitQuaternion<qScalar_> rotation() const noexcept {return UnitQuaternion(this->primary_);}
     PureQuaternion<qScalar_> translation() const noexcept {return PureQuaternion(this->dual_ * this->primary_.conj() * 2);}
 
-    UnitDualQuaternion()=default;
     UnitDualQuaternion(const UnitDualQuaternion& dq)=default;
     UnitDualQuaternion(UnitDualQuaternion&& dq)=default;
     virtual ~UnitDualQuaternion()=default;
@@ -1341,6 +1341,11 @@ std::string DualQuaternion<qScalar_>::to_string() const{
 
 
 template<typename qScalar_>
+UnitDualQuaternion<qScalar_>::UnitDualQuaternion(): DualQuaternion<qScalar_>(UnitQuaternion<qScalar_>(1)){
+
+}
+
+template<typename qScalar_>
 UnitDualQuaternion<qScalar_>::UnitDualQuaternion(const UnitQuaternion<qScalar_>& primary, const Quaternion<qScalar_>& dual)
     : DualQuaternion<qScalar_>(primary, dual){ } 
 
@@ -1444,9 +1449,9 @@ using Pose = T_Pose<double>;
 using Pose_jcb = Matd<8, -1>;
 using Rot_jcb = Matd<4, -1>;
 using Tslt_jcb = Matd<4, -1>;
-const Axis i_(1.,0,0);
-const Axis j_(0,1.,0);
-const Axis k_(0,0,1.);
+const Axis i_(1,0,0);
+const Axis j_(0,1,0);
+const Axis k_(0,0,1);
 const Mat4d C4_ = (Mat4d() << 1, 0,0,0,
                             0,-1,0,0,
                             0,0,-1,0,

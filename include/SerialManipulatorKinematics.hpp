@@ -1,6 +1,7 @@
 #pragma once
 #include "Pose.hpp"
 #include <memory>
+#include <qpOASES.hpp>
 
 namespace dq1
 {
@@ -10,14 +11,11 @@ namespace kinematics
 
 const Vecxd _closest_invariant_rotation_error(const Rot& r, const Rot& rd)
 {
-    Rot er_plus = Rot(r.conj() * rd - 1);
-    Rot er_minus = Rot(r.conj() * rd + 1);
+    Quat er_plus = r.conj() * rd - 1;
+    Quat er_minus = r.conj() * rd + 1;
 
-    double er_plus_norm  = er_plus.norm();
-    double er_minus_norm = er_minus.norm();
-
-    double invariant;
-    if(er_plus_norm<er_minus_norm)
+    // double invariant;
+    if(er_plus.norm()<er_minus.norm())
     {
         // invariant = 1;
         return er_plus.vec4();
@@ -32,17 +30,17 @@ const Vecxd _closest_invariant_rotation_error(const Rot& r, const Rot& rd)
 class Joint{
 protected:
     double pos_; // joint position
-    Vec4d limits_; // {max position, min position, max speed, min speed}
+    Vec4d limits_; // {min position, max position, min speed, max speed}
     Pose fkm_; // forward kinematics, pose transformation from reference to end    
     Vec8d jcb_; // jacobian of reference end pose with respect to joint position
     void _check_limits(){
-        if (limits_[0] < limits_[1] || limits_[2] < limits_[3])
+        if (limits_[0] > limits_[1] || limits_[2] > limits_[3])
             throw std::runtime_error("Joint complains about unreasonable joint limits, check if max position limits are all bigger than the min limits.\n");
     }
     void _make_position_within_limits(){
-        if (pos_ > limits_[0]) 
+        if (pos_ < limits_[0]) 
             pos_ = limits_[0];
-        if (pos_ < limits_[1])
+        if (pos_ > limits_[1])
             pos_ = limits_[1];
     }
 
@@ -54,19 +52,24 @@ public:
     Joint(const Vec4d& motion_limits, double position=0): limits_(motion_limits), pos_(position), fkm_(1) {
         _check_limits();
     }
-    virtual ~Joint();
+    virtual ~Joint()=default;
 
-    virtual void update(double position)noexcept=0;
-    virtual void update_signal(double signal)noexcept=0;
+    virtual void update(const double position)noexcept=0;
+    virtual void update_signal(const double signal)noexcept=0;
 
     // Const
-    virtual Pose calculate_fkm(double position)const =0 ;
-    virtual Vec8d calculate_jacobian(double position)const =0 ;
+    virtual Pose calculate_fkm(const double position)const =0 ;
+    virtual Vec8d calculate_jacobian(const double position)const =0 ;
 
     double position() const noexcept{ return pos_; }
     Vec4d motion_limits()  const noexcept{ return limits_; }
     Pose fkm() const  noexcept{ return fkm_; }
     Vec8d jacobian() const noexcept{ return jcb_; } 
+    double min_position() const noexcept {return limits_[0];}
+    double max_position() const noexcept {return limits_[1];}
+    double min_speed() const noexcept {return limits_[2];}
+    double max_speed() const noexcept {return limits_[3];}
+
 };
 
 class RevoluteJoint: public Joint{
@@ -83,13 +86,13 @@ public:
     virtual ~RevoluteJoint()=default;
 
 
-    virtual void update(double position)noexcept{
+    virtual void update(const double position)noexcept{
         pos_ = position;
         _make_position_within_limits();
         fkm_ = calculate_fkm(pos_);
         jcb_ = calculate_jacobian(pos_);
     }
-    virtual void update_signal(double signal)noexcept{
+    virtual void update_signal(const double signal)noexcept{
         pos_ += signal;
         _make_position_within_limits();
         fkm_ = calculate_fkm(pos_);
@@ -97,7 +100,7 @@ public:
     }
 
     // Const
-    virtual Pose calculate_fkm(double position) const override{
+    virtual Pose calculate_fkm(const double position) const override{
 
         double theta_real = cos( 0.5* (DH_params_[0] + pos_) );
         double theta_im = sin( 0.5* (DH_params_[0] + pos_) );
@@ -116,7 +119,7 @@ public:
             0.5 * (theta_real * d * alpha_real - theta_im * a * alpha_im)
         }; // test past
     }
-    virtual Vec8d calculate_jacobian(double position) const override{
+    virtual Vec8d calculate_jacobian(const double position) const override{
 
         double theta_dot_real = -0.5 * sin( 0.5* (DH_params_[0] + pos_) );
         double theta_dot_im = 0.5 * cos( 0.5* (DH_params_[0] + pos_) );
@@ -146,16 +149,17 @@ public:
     // Mutable 
 
     PrismaticJoint()=delete;
-    PrismaticJoint(const Vec4d& DH_parameters, const Vec4d& motion_limits, double position);
+    PrismaticJoint(const Vec4d& DH_parameters, const Vec4d& motion_limits, double position): Joint(motion_limits, position), DH_params_(DH_parameters){}
     virtual ~PrismaticJoint()=default;
 
-    virtual void update(double position)noexcept{}
+    virtual void update(const double position)noexcept{}
+    virtual void update_signal(const double signal)noexcept {}
     // Const
-    virtual Pose calculate_fkm(double position) const override {
-
+    virtual Pose calculate_fkm(const double position) const override {
+        return Pose();
     }
-    virtual Vec8d calculate_jacobian(double position) const override{
-
+    virtual Vec8d calculate_jacobian(const double position) const override{
+        return Vec8d();
     }
 };
 
@@ -163,9 +167,9 @@ public:
 class SerialManipulator{
 protected:
     std::vector<std::unique_ptr<Joint>> joints_;
-    Pose base_;
-    Pose effector_;
-    Pose abs_end_;
+    Pose base_{1};
+    Pose effector_{1};
+    Pose abs_end_{1};
     std::vector<Pose> joint_poses_; // joint poses + end pose
     Pose_jcb pose_jacobian_;
     Rot_jcb r_jacobian_;
@@ -188,16 +192,18 @@ public:
 
         // instantiate remaining joints
         for (int i=0; i<DOF; ++i){
-            if (DH_params[4, i] == 0){
+            if (DH_params(4, i) == 0){
                 joints_.push_back(std::make_unique<RevoluteJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i), joint_positions[i]));
-            } else if (DH_params[4, i] == 1){
+            } else if (DH_params(4, i) == 1){
                 joints_.push_back(std::make_unique<PrismaticJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i), joint_positions[i]));
             } else {
-                throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) arg0 5-th row DH_params[4, " + std::to_string(i) + "] = " + std::to_string(DH_params[4,i]) + ", this row should consist only of 0 or 1.(0: Revolute joint, 1: Prismatic joint)\n");
+                throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) arg0 5-th row DH_params[4, " + std::to_string(i) + "] = " + std::to_string(DH_params(4, i)) + ", this row should consist only of 0 or 1.(0: Revolute joint, 1: Prismatic joint)\n");
             }
         }
+        const Vecxd initial_signals = Vecxd::Zero(joints_.size());
+        update_joint_signals(initial_signals);
 
-        std::cout << "A Kinematics::SerialManipulator constructed!\n" ;
+        std::cout << "A " + std::to_string(DOF) + " DoF Kinematics::SerialManipulator constructed!\n" ;
     }
     virtual ~SerialManipulator()=default;
 
@@ -209,9 +215,53 @@ public:
     } 
 
     void update(const Pose& desired_pose){
+        USING_NAMESPACE_QPOASES;
 
+        const Matxd& r_rd_jacobian = desired_pose.rotation().conj().haminus() * r_jacobian_;
+        const Matxd& Ht = (t_jacobian_.transpose() * t_jacobian_) * 2;
+        const Matxd& Hr = (r_rd_jacobian.transpose() * r_rd_jacobian) * 2;
+        const Vecxd& damping_vec = Vecxd::Ones(joints_.size()) * 0.0001;
+        const Matxd& Hj = damping_vec.asDiagonal();
+        const Matxd& H = 0.9999 * Ht + (1-0.9999) * Hr + Hj;
 
-    update_joint_signals(u);
+        const Vecxd& vec_et = (abs_end_.translation() - desired_pose.translation()).vec4();
+        const Vecxd& vec_er = _closest_invariant_rotation_error(abs_end_.rotation(), desired_pose.rotation());
+        const Vecxd& ct = 2 * 50 * vec_et.transpose() * t_jacobian_;
+        const Vecxd& cr = 2 * 50 * vec_er.transpose() * r_rd_jacobian;
+        const Vecxd& g = 0.9999 * ct + (1-0.9999) * cr;
+
+        const Matxd& constraint = Vecxd::Ones(joints_.size()).asDiagonal();
+
+        SQProblem qp(joints_.size(), 0);
+        Options options;
+        options.printLevel = PL_LOW;
+        qp.setOptions(options);
+
+        int_t nWSR = 500;
+        const double* H_raw = H.data();
+        const double* g_raw = g.data();
+        const double* A_raw = constraint.data();
+        const double* lb_raw = min_joint_speeds().data();
+        const double* ub_raw = max_joint_speeds().data();
+
+        bool first_time{true};
+        if (first_time){
+            returnValue status = qp.init(H_raw, g_raw, A_raw, nullptr, nullptr, lb_raw, ub_raw, nWSR);
+            if (status != SUCCESSFUL_RETURN){
+                throw std::runtime_error("Failed to solve QP problem.\n");
+            }
+            first_time = false;
+        }else{
+            returnValue status = qp.hotstart(H_raw, g_raw, A_raw, nullptr, nullptr, lb_raw, ub_raw, nWSR);
+            if (status != SUCCESSFUL_RETURN){
+                throw std::runtime_error("Failed to solve QP problem.\n");
+            }
+
+        }
+        real_t xOpt[joints_.size()];
+        qp.getPrimalSolution(xOpt);
+        Eigen::Map<Vecxd> u(xOpt, joints_.size());
+        update_joint_signals(u*0.0004);
     }
 
     void update_joint_positions(const Vecxd& joint_positions){
@@ -243,31 +293,51 @@ public:
     }
 
     Vecxd joint_positions() const noexcept{
-        Vecxd res;
-        for (const auto& joint : joints_){
-            res << joint->position();
+        Vecxd res(joints_.size());
+        for (int i = 0; i < joints_.size(); ++i) {
+            res[i] = joints_[i]->position();
         }
-        return std::move(res);
+        return res;
+    }
+    Vecxd min_joint_positions() const noexcept{
+        Vecxd res(joints_.size());
+        for (int i = 0; i < joints_.size(); ++i) {
+            res[i] = joints_[i]->min_position();
+        }
+        return res;
+    }
+    Vecxd max_joint_positions() const noexcept{
+        Vecxd res(joints_.size());
+        for (int i = 0; i < joints_.size(); ++i) {
+            res[i] = joints_[i]->max_position();
+        }
+        return res;
+    }
+    Vecxd min_joint_speeds() const noexcept{
+        Vecxd res(joints_.size());
+        for (int i = 0; i < joints_.size(); ++i) {
+            res[i] = joints_[i]->min_speed();
+        }
+        return res;
+    }
+    Vecxd max_joint_speeds() const noexcept{
+        Vecxd res(joints_.size());
+        for (int i = 0; i < joints_.size(); ++i) {
+            res[i] = joints_[i]->max_speed();
+        }
+        return res;
     }
     // Vecxd joint_signals() const noexcept;
+    Pose end_pose()const noexcept{
+        return abs_end_;
+    }
+
+    int DoF() const noexcept{
+        return joints_.size();
+    }
 private:
-    Matxd _calculate_quadratic_matrix(const Pose& desired_pose){
-        const Matxd& r_rd_jacobian = desired_pose.rotation().conj().haminus() * r_jacobian_;
-        const Matxd& Ht = (t_jacobian_.transpose() * t_jacobian_) * 2;
-        const Matxd& Hr = (r_rd_jacobian.transpose() * r_rd_jacobian) * 2;
-        const Vecxd& damping_vec = Vecxd::Ones(joints_.size()) * 0.0001;
-        const Matxd& Hj = damping_vec.asDiagonal();
-        return 0.9999 * Ht + (1-0.9999) * Hr + Hj;
-    }
-    Vecxd _calculate_quadratic_vector(const Pose& desired_pose){
-        const Matxd& r_rd_jacobian = desired_pose.rotation().conj().haminus() * r_jacobian_;
-        const Vecxd& vec_et = (abs_end_.translation() - desired_pose.translation()).vec4();
-        const Vecxd& vec_er = _closest_invariant_rotation_error(abs_end_.rotation(), desired_pose.rotation());
-        const Vecxd& ct = 2 * vec_et.transpose() * 50 * t_jacobian_;
-        const Vecxd& cr = 2 * vec_er.transpose() * 50 * r_rd_jacobian;
-        return 0.9999 * ct + (1-0.9999) * cr;
-    }
-    Matxd _update_jacobians() {
+
+    void _update_jacobians() {
         for (int i=0; i<joints_.size(); ++i){
             const Vec8d& pose_jacobian_i = (joint_poses_[i].conj() * joint_poses_.back()).haminus() * joints_[i]->jacobian();
             pose_jacobian_.col(i) = pose_jacobian_i;

@@ -1,0 +1,29 @@
+# CMake dq1 module
+#
+# It defines the following variables:
+# dq1_FOUND         - TRUE
+# dq1_INCLUDE_DIR  - The dq1 include directory
+# dq1_LIBRARY_DIR  - The dq1 library directory
+# dq1_LIBRARY     - The dq1 library
+# dq1_VERSION       - The dq1 version in the form <major>.<minor>
+
+
+
+@PACKAGE_INIT@
+
+set(dq1_VERSION @PACKAGE_VERSION@)
+
+
+set_and_check(dq1_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+
+
+set(dq1_INCLUDE_DIR "${dq1_INCLUDE_DIR}" CACHE STRING "Include path for dq1 and its dependencies")
+set_and_check(dq1_LIBRARY_DIR @PACKAGE_LIB_INSTALL_DIR@)
+set(dq1_LIBRARY_DIR "${dq1_LIBRARY_DIR}" CACHE STRING "Library path for dq1 and its dependencies")
+
+find_library(dq1_LIBRARY NAMES dq1
+    PATHS ${dq1_LIBRARY_DIR} NO_DEFAULT_PATH)
+
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(dq1 DEFAULT_MSG dq1_INCLUDE_DIR dq1_LIBRARY_DIR dq1_LIBRARY dq1_VERSION)
