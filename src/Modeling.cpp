@@ -244,18 +244,21 @@ void SerialManipulator::set_effector(const Pose& effector) noexcept {
 void SerialManipulator::update(const Pose& desired_pose) {
     USING_NAMESPACE_QPOASES;
 
+    double translation_priority = 1;
+    double ikm_gain = 50;
+
     const Matxd& r_rd_jacobian = desired_pose.rotation().conj().haminus() * r_jacobian_;
-    const Matxd& Ht = (t_jacobian_.transpose() * t_jacobian_) * 2;
-    const Matxd& Hr = (r_rd_jacobian.transpose() * r_rd_jacobian) * 2;
+    const Matxd& Ht = (t_jacobian_.transpose() * t_jacobian_);
+    const Matxd& Hr = (r_rd_jacobian.transpose() * r_rd_jacobian);
     const Vecxd& damping_vec = Vecxd::Ones(joints_.size()) * 0.0001;
     const Matxd& Hj = damping_vec.asDiagonal();
-    const Matxd& H = 0.9999 * Ht + (1-0.9999) * Hr + Hj;
+    const Matxd& H = translation_priority * Ht + (1-translation_priority) * Hr + Hj;
 
     const Vecxd& vec_et = (abs_end_.translation() - desired_pose.translation()).vec4();
     const Vecxd& vec_er = __closest_invariant_rotation_error(abs_end_.rotation(), desired_pose.rotation());
-    const Vecxd& ct = 2 * 50 * vec_et.transpose() * t_jacobian_;
-    const Vecxd& cr = 2 * 50 * vec_er.transpose() * r_rd_jacobian;
-    const Vecxd& g = 0.9999 * ct + (1-0.9999) * cr;
+    const Vecxd& ct = ikm_gain * vec_et.transpose() * t_jacobian_;
+    const Vecxd& cr = ikm_gain * vec_er.transpose() * r_rd_jacobian;
+    const Vecxd& g = translation_priority * ct + (1-translation_priority) * cr;
 
     const Matxd& constraint = Vecxd::Ones(joints_.size()).asDiagonal();
 
