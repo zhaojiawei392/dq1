@@ -11,14 +11,21 @@
 
 @PACKAGE_INIT@
 
+macro(set_and_check _var _file)
+  set(${_var} "${_file}")
+  if(NOT EXISTS "${_file}")
+    message(FATAL_ERROR "File or directory ${_file} referenced by variable ${_var} does not exist !")
+  endif()
+endmacro()
+
 set(dq1_VERSION @PACKAGE_VERSION@)
 
-
-set_and_check(dq1_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
-
+set_and_check(dq1_INCLUDE_DIR "${PACKAGE_PREFIX_DIR}/include")
 
 set(dq1_INCLUDE_DIR "${dq1_INCLUDE_DIR}" CACHE STRING "Include path for dq1 and its dependencies")
-set_and_check(dq1_LIBRARY_DIR @PACKAGE_LIB_INSTALL_DIR@)
+
+set_and_check(dq1_LIBRARY_DIR "${PACKAGE_PREFIX_DIR}/lib")
+
 set(dq1_LIBRARY_DIR "${dq1_LIBRARY_DIR}" CACHE STRING "Library path for dq1 and its dependencies")
 
 find_library(dq1_LIBRARY NAMES dq1
@@ -27,3 +34,5 @@ find_library(dq1_LIBRARY NAMES dq1
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(dq1 DEFAULT_MSG dq1_INCLUDE_DIR dq1_LIBRARY_DIR dq1_LIBRARY dq1_VERSION)
+
+include ( "${CMAKE_CURRENT_LIST_DIR}/dq1Targets.cmake" )

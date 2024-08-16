@@ -1,7 +1,6 @@
 
 #include <iostream>
-#include "Pose.hpp"
-#include "SerialManipulatorKinematics.hpp"
+#include "dq1.hpp"
 
 using namespace dq1;
 

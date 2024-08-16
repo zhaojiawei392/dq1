@@ -1,165 +1,92 @@
-cmake_minimum_required(VERSION 3.28.3)
+cmake_minimum_required(VERSION 3.28)
 
-project(dq1 VERSION 1.0 DESCRIPTION "An implementation of the dual quaternion" LANGUAGES CXX)
+# set the project name and version
+project(dq1 VERSION 1.0 LANGUAGES CXX)
+set(CMAKE_DEBUG_POSTFIX d)
 
 # Package metadata
 set(PACKAGE_NAME "dq1")
 set(PACKAGE_VERSION "1.0.0")
 set(PACKAGE_SO_VERSION "1.0")
-set(PACKAGE_AUTHOR "ZHAO JIAWEI.")
-set(PACKAGE_MAINTAINER "ZHAO JIAWEI.")
-set(PACKAGE_URL "https://github.com/zhaojiawei392/DualQuaternion")
+set(PACKAGE_AUTHOR "Jiawei ZHAO")
+set(PACKAGE_MAINTAINER "Jiawei ZHAO")
+set(PACKAGE_URL "https://github.com/zhaojiawei392/DualQuaternion/tree/2024-1.0a1")
 
-# Set output directories
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(dq1_LIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+add_library(dq1_compiler_flags INTERFACE)
+target_compile_features(dq1_compiler_flags INTERFACE cxx_std_20)
 
-# Installation directories
-include(GNUInstallDirs)
-set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
-set(CMAKE_INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
-set(CMAKE_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
+# add compiler warning flags just when building this project via
+# the BUILD_INTERFACE genex
+set(gcc_like_cxx "$<COMPILE_LANG_AND_ID:CXX,ARMClang,AppleClang,Clang,GNU,LCC>")
+set(msvc_cxx "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
+target_compile_options(dq1_compiler_flags INTERFACE
+  "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Wextra;-Wshadow;-Wformat=2;-Wunused>>"
+  "$<${msvc_cxx}:$<BUILD_INTERFACE:-W3>>"
+)
 
-# Default build type
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+# control where the static and shared libraries are built so that on windows
+# we don't need to tinker with the path to run the executable
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+option(dq1_BUILD_EXAMPLES "Build examples" ON)
+
+if(APPLE)
+  set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
+elseif(UNIX)
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif()
 
-# Options
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+# add the MathFunctions library
+add_subdirectory(src)
 
-# Check for unsupported configurations
-if(BUILD_SHARED_LIBS AND WIN32)
-    message(FATAL_ERROR "Compiling dq1 as a shared library on Windows is not supported.")
-endif()
+# enable testing
+enable_testing()
 
-# Compiler flags
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__NO_COPYRIGHT__")
+# does the application run
+add_test(NAME Runs COMMAND example1)
 
-# Source files
-file(GLOB SRC src/*.cpp)
+# setup installer
+include(InstallRequiredSystemLibraries)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
+set(CPACK_PACKAGE_VERSION_MAJOR "${dq1_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${dq1_VERSION_MINOR}")
+set(CPACK_GENERATOR "TGZ")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+include(CPack)
 
-# RPATH settings
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-if("${isSystemDir}" STREQUAL "-1")
-   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-endif()
-
-
-# **********************************************************************************************************************
-# **********************************************************************************************************************
-# *********************************************Build and Install********************************************************
-# **********************************************************************************************************************
-# **********************************************************************************************************************
-
-find_package(qpOASES REQUIRED)
-
-include_directories(
-    ${PROJECT_SOURCE_DIR}/include
+# install the configuration targets
+install(EXPORT dq1Targets
+  FILE dq1Targets.cmake
+  DESTINATION lib/cmake/dq1
 )
-
-#Create library
-add_library(dq1 INTERFACE)
-target_include_directories(dq1 INTERFACE 
-    $<BUILD_INTERFACE:${MY_LIBRARY_INCLUDE_DIR}>
-    $<INSTALL_INTERFACE:include>
-)
-target_link_libraries(dq1 INTERFACE
-    qpOASES
-)
-
-# install(TARGETS dq1
-#     EXPORT qpOASES 
-#     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-# )
-
-set_target_properties(dq1 PROPERTIES
-    VERSION ${PACKAGE_VERSION}
-    SOVERSION ${PACKAGE_SO_VERSION}
-)
-
-# Install headers
-install(FILES dq1.hpp
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-install(DIRECTORY include/
-DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dq1
-FILES_MATCHING PATTERN "*.hpp" PATTERN "*.ipp"
-PATTERN ".svn" EXCLUDE)
-
-
-
-
-# **********************************************************************************************************************
-# **********************************************************************************************************************
-# *********************************************Package config***********************************************************
-# **********************************************************************************************************************
-# **********************************************************************************************************************
 
 include(CMakePackageConfigHelpers)
-
-set(INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR})
-set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-
-# Generate the config file
-configure_package_config_file(dq1Config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/dq1Config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dq1
-    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
-    NO_CHECK_REQUIRED_COMPONENTS_MACRO)
-
+# generate the config file that includes the exports
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/dq1Config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/dq1Config.cmake"
+  INSTALL_DESTINATION "lib/cmake/dq1"
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+  )
+# generate the version file for the config file
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/dq1ConfigVersion.cmake
-    VERSION ${PACKAGE_VERSION}
-    COMPATIBILITY SameMajorVersion
+  "${CMAKE_CURRENT_BINARY_DIR}/dq1ConfigVersion.cmake"
+  VERSION "${dq1_VERSION_MAJOR}.${dq1_VERSION_MINOR}"
+  COMPATIBILITY AnyNewerVersion
 )
 
-# Install the config file
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dq1Config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/dq1ConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dq1
-    COMPONENT dq1)
+# install the generated configuration files
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/dq1Config.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/dq1ConfigVersion.cmake
+  DESTINATION lib/cmake/dq1
+  )
 
-
-
-
-# Examples
-option(dq1_BUILD_EXAMPLES OFF)
-# Alternative manual setting, without the 'option' keyword
-set(dq1_BUILD_EXAMPLES ON CACHE BOOL "Build example programs")
-
-if(dq1_BUILD_EXAMPLES)
-    # Compile examples
-    set(EXAMPLE_NAMES
-        example1
-    )
-    foreach(EXAMPLE ${EXAMPLE_NAMES})
-        add_executable(${EXAMPLE} examples/${EXAMPLE}.cpp)
-        target_link_libraries(${EXAMPLE} qpOASES)
-    endforeach()
-endif()
-
-
-
-
-
-
-
-
-
-
-
-
-
+# generate the export targets for the build tree
+# needs to be after the install(TARGETS) command
+export(EXPORT dq1Targets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/dq1Targets.cmake"
+)
