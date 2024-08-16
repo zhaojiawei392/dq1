@@ -254,8 +254,8 @@ void SerialManipulator::update(const Pose& desired_pose) {
     const Matxd& Hj = damping_vec.asDiagonal();
     const Matxd& H = translation_priority * Ht + (1-translation_priority) * Hr + Hj;
 
-    const Vecxd& vec_et = (abs_end_.translation() - desired_pose.translation()).vec4();
-    const Vecxd& vec_er = __closest_invariant_rotation_error(abs_end_.rotation(), desired_pose.rotation());
+    const Vecxd& vec_et = (end_pose_.translation() - desired_pose.translation()).vec4();
+    const Vecxd& vec_er = __closest_invariant_rotation_error(end_pose_.rotation(), desired_pose.rotation());
     const Vecxd& ct = ikm_gain * vec_et.transpose() * t_jacobian_;
     const Vecxd& cr = ikm_gain * vec_er.transpose() * r_rd_jacobian;
     const Vecxd& g = translation_priority * ct + (1-translation_priority) * cr;
@@ -276,7 +276,7 @@ void SerialManipulator::update(const Pose& desired_pose) {
 
     bool first_time{true};
     if (first_time){
-        returnValue status = qp.init(H_raw, g_raw, A_raw, nullptr, nullptr, lb_raw, ub_raw, nWSR); // intentionally raw pointers
+        returnValue status = qp.init(H_raw, g_raw, A_raw, nullptr, nullptr, lb_raw, ub_raw, nWSR); 
         if (status != SUCCESSFUL_RETURN){
             throw std::runtime_error("Failed to solve QP problem.\n");
         }
@@ -304,7 +304,7 @@ void SerialManipulator::update_joint_positions(const Vecxd& joint_positions) {
         joints_[i]->update(joint_positions[i]);
         joint_poses_[i] = joint_poses_[i-1] * joints_[i]->fkm();
     }
-    abs_end_ = base_ * joint_poses_.back() * effector_;
+    end_pose_ = base_ * joint_poses_.back() * effector_;
     _update_jacobians();
 }
 
@@ -318,7 +318,7 @@ void SerialManipulator::update_joint_signals(const Vecxd& joint_signals) {
         joints_[i]->update_signal(joint_signals[i]);
         joint_poses_[i] = joint_poses_[i-1] * joints_[i]->fkm();
     }
-    abs_end_ = base_ * joint_poses_.back() * effector_;
+    end_pose_ = base_ * joint_poses_.back() * effector_;
     _update_jacobians();
 }
 
@@ -363,7 +363,7 @@ Vecxd SerialManipulator::max_joint_speeds() const noexcept {
 }
 
 Pose SerialManipulator::end_pose() const noexcept {
-    return abs_end_;
+    return end_pose_;
 }
 
 int SerialManipulator::DoF() const noexcept {
@@ -379,7 +379,7 @@ void SerialManipulator::_update_jacobians() {
 
     r_jacobian_ = pose_jacobian_.block(0,0,4,joints_.size());
 
-    t_jacobian_ = abs_end_.rotation().conj().haminus() * (pose_jacobian_.block(4,0,4,joints_.size()) * 2 - abs_end_.translation().hamiplus() * r_jacobian_);
+    t_jacobian_ = end_pose_.rotation().conj().haminus() * (pose_jacobian_.block(4,0,4,joints_.size()) * 2 - end_pose_.translation().hamiplus() * r_jacobian_);
 }
 
 } // namespace kinematics

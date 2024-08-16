@@ -68,7 +68,7 @@ protected:
     std::vector<std::unique_ptr<Joint>> joints_;
     Pose base_;
     Pose effector_;
-    Pose abs_end_;
+    Pose end_pose_;
     std::vector<Pose> joint_poses_; 
     Pose_jcb pose_jacobian_;
     Rot_jcb r_jacobian_;
