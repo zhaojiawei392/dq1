@@ -13,7 +13,9 @@ T square(const T& x) {
 }
 
 constexpr int PRINT_PRECISION = 18;
-constexpr double OMIT_THRESHOLD = 0.00000001;
+constexpr double FLOAT_OMIT_THRESHOLD = 0.00000001;
+constexpr double FLOAT_ERROR_THRESHOLD = 0.0001;
+constexpr bool VERY_VERBOSE = false;
 
 template<typename Scalar_, int size>
 using Vec=Eigen::Matrix<Scalar_, size, 1>;
@@ -155,9 +157,9 @@ public:
     template<typename Scalar_>
     friend std::ostream& operator<<(std::ostream& os, const Quaternion<Scalar_>& quaternion);
     template<typename Scalar_>
-    friend void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) noexcept;
+    friend void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<Scalar_>& quaternion);
     template<typename Scalar_>
-    friend void _norm_should_be_one(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) noexcept;
+    friend void _norm_should_be_one(std::string&& calling_fn, Quaternion<Scalar_>& quaternion);
 
     // Defaults
 
@@ -183,15 +185,15 @@ public:
     PureQuaternion& operator=(Quaternion<qScalar_>&& q);
 
     // mutable operators
-    PureQuaternion& operator+=(const PureQuaternion& other) noexcept;
-    PureQuaternion& operator-=(const PureQuaternion& other) noexcept;
+    PureQuaternion& operator+=(const PureQuaternion& other);
+    PureQuaternion& operator-=(const PureQuaternion& other);
     PureQuaternion& operator*=(const PureQuaternion& other) noexcept=delete;
     template<typename Scalar_> 
     std::enable_if_t<std::is_arithmetic_v<Scalar_>, PureQuaternion&>
-    operator*=(const Scalar_ scalar) noexcept;
+    operator*=(const Scalar_ scalar) ;
     template<typename Scalar_>
     std::enable_if_t<std::is_arithmetic_v<Scalar_>, PureQuaternion&>
-    operator/=(const Scalar_ scalar) noexcept;
+    operator/=(const Scalar_ scalar) ;
     PureQuaternion& normalize();
 
     PureQuaternion active_rotate(const UnitQuaternion<qScalar_>& rotation){
@@ -252,7 +254,7 @@ public:
     // mutable operators
     UnitQuaternion& operator+=(const UnitQuaternion& other) noexcept=delete;
     UnitQuaternion& operator-=(const UnitQuaternion& other) noexcept=delete;
-    UnitQuaternion& operator*=(const UnitQuaternion& other) noexcept;
+    UnitQuaternion& operator*=(const UnitQuaternion& other) ;
     template<typename Scalar_> 
     std::enable_if_t<std::is_arithmetic_v<Scalar_>, UnitQuaternion&>
     operator*=(const Scalar_ scalar) noexcept=delete;
@@ -348,6 +350,32 @@ namespace dq1
 
 // Helper Functions *************************************************************************
 
+template<typename Scalar_>
+void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) {
+    double real = std::abs(quaternion.vals_[0]);
+    if (real > FLOAT_OMIT_THRESHOLD){
+        if (VERY_VERBOSE)
+            std::cout << "Warning: " << std::fixed << std::setprecision(PRINT_PRECISION) << 
+                     std::move(calling_fn) << " detected Pure Quaternion with real part " << quaternion.vals_[0] << ".\n";
+        if (real > FLOAT_ERROR_THRESHOLD)
+            throw std::runtime_error(std::move(calling_fn) + " detected bad Pure Quaternion with real part " + std::to_string(quaternion.vals_[0]) + ".\n");
+    }
+    // quaternion.vals_[0] = 0;
+}
+
+template<typename Scalar_>
+void _norm_should_be_one(std::string&& calling_fn, Quaternion<Scalar_>& quaternion){
+    double norm_err = std::abs(quaternion.norm() - 1);
+    if (norm_err > FLOAT_OMIT_THRESHOLD){
+        if (VERY_VERBOSE)
+            std::cout << "Warning: " << std::fixed << std::setprecision(PRINT_PRECISION) << 
+                     std::move(calling_fn) << " detected Unit Quaternion with norm " << quaternion.norm() << ".\n";
+        if (norm_err > FLOAT_ERROR_THRESHOLD)
+            throw std::runtime_error(std::move(calling_fn) + " detected bad Unit Quaternion with norm " + std::to_string(quaternion.vals_[0]) + ".\n");
+    } 
+    // quaternion.vals_.normalize();
+}
+
 template<typename fScalar_>
 Quaternion<fScalar_> operator*(const Quaternion<fScalar_>& quaternion1, const Quaternion<fScalar_>& quaternion2) noexcept{
     return Quaternion<fScalar_>(quaternion1.hamiplus() * quaternion2.vals_); 
@@ -370,24 +398,6 @@ std::ostream& operator<<(std::ostream& os, const Quaternion<Scalar_>& q){
     os << q.operator std::string();  
 return os;
 } 
-
-template<typename Scalar_>
-void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) noexcept {
-    if (std::abs(quaternion.vals_[0]) > OMIT_THRESHOLD)
-        std::cout << "Warning: " << std::fixed << std::setprecision(PRINT_PRECISION) << 
-                     std::move(calling_fn) << " omitted a real part " << quaternion.vals_[0] << ".\n";
-    quaternion.vals_[0] = 0;
-}
-
-template<typename Scalar_>
-void _norm_should_be_one(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) noexcept{
-
-    if (std::abs(quaternion.norm() - 1) > OMIT_THRESHOLD){
-        std::cout << "Warning: " << std::fixed << std::setprecision(PRINT_PRECISION) << 
-                     std::move(calling_fn) << " normalized a quaternion with a norm " << quaternion.norm() << ".\n";
-    } 
-    quaternion.vals_.normalize();
-}
 
 template<typename Scalar_, typename fScalar_>
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, PureQuaternion<fScalar_>>
@@ -645,36 +655,36 @@ PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::operator=(Quaternion<qScalar
 }
 
 template<typename qScalar_>
-PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::operator+=(const PureQuaternion& other) noexcept{
+PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::operator+=(const PureQuaternion& other) {
     this->vals_ += other.vals_;
-    this->vals_[0] = 0;
+    _real_part_should_be_zero("PureQuaternion<qScalar_>::operator+=(const PureQuaternion& other)", *this);
     return *this;
 }
 template<typename qScalar_>
-PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::operator-=(const PureQuaternion& other) noexcept{
+PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::operator-=(const PureQuaternion& other) {
     this->vals_ -= other.vals_;
-    this->vals_[0] = 0;
+    _real_part_should_be_zero("PureQuaternion<qScalar_>::operator-=(const PureQuaternion& other)", *this);
     return *this;
 }
 template<typename qScalar_>
 template<typename Scalar_> 
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, PureQuaternion<qScalar_>&>
-PureQuaternion<qScalar_>::operator*=(const Scalar_ scalar) noexcept{
+PureQuaternion<qScalar_>::operator*=(const Scalar_ scalar) {
     this->vals_ *= scalar;
-    this->vals_[0] = 0;
+    _real_part_should_be_zero("PureQuaternion<qScalar_>::operator*=(const PureQuaternion& other)", *this);
     return *this;
 }
 template<typename qScalar_>
 template<typename Scalar_>
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, PureQuaternion<qScalar_>&>
-PureQuaternion<qScalar_>::operator/=(const Scalar_ scalar) noexcept{
+PureQuaternion<qScalar_>::operator/=(const Scalar_ scalar) {
     this->vals_ /= scalar;
-    this->vals_[0] = 0;
+    _real_part_should_be_zero("PureQuaternion<qScalar_>::operator/=(const PureQuaternion& other)", *this);
     return *this;
 }
 template<typename qScalar_>
 PureQuaternion<qScalar_>& PureQuaternion<qScalar_>::normalize(){
-    this->vals_[0] = 0;
+    _real_part_should_be_zero("PureQuaternion<qScalar_>::normalize()", *this);
     this->vals_.normalize();
     return *this;
 }
@@ -765,9 +775,9 @@ UnitQuaternion<qScalar_>& UnitQuaternion<qScalar_>::operator=(Quaternion<qScalar
 }
 
 template<typename qScalar_>
-UnitQuaternion<qScalar_>& UnitQuaternion<qScalar_>::operator*=(const UnitQuaternion& other) noexcept{
+UnitQuaternion<qScalar_>& UnitQuaternion<qScalar_>::operator*=(const UnitQuaternion& other) {
     this->vals_ = this->hamiplus() * other.vals_;
-    this->vals_.normalize();
+    _norm_should_be_one("UnitQuaternion<qScalar_>::operator*=(const UnitQuaternion& other)", *this);
     return *this;
 }
 template<typename qScalar_>
@@ -1121,7 +1131,7 @@ std::ostream& operator<<(std::ostream& os, const DualQuaternion<Scalar_>& dq) {
 
 template<typename Scalar_>
 void _primary_part_should_be_unit(std::string&& calling_fn, DualQuaternion<Scalar_>& dq) noexcept{
-    if (std::abs(dq.primary_.norm() - 1) > OMIT_THRESHOLD){
+    if (std::abs(dq.primary_.norm() - 1) > FLOAT_OMIT_THRESHOLD){
         std::cout << "Warning: " << std::fixed << std::setprecision(PRINT_PRECISION) << 
                         std::move(calling_fn) << " normalized a primary part with a norm " << dq.primary_.norm() << ".\n";
     }    

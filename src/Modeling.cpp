@@ -340,8 +340,7 @@ void SerialManipulator::_update_jacobians() {
     }
     pose_jacobian_ = effector_.haminus() * base_.hamiplus() * pose_jacobian_;
     r_jacobian_ = pose_jacobian_.block(0,0,4,DoF());
-    t_jacobian_ = end_pose_.rotation().conj().haminus() * (pose_jacobian_.block(4,0,4,DoF()) * 2 - end_pose_.translation().hamiplus() * r_jacobian_);
-
+    t_jacobian_ = 2 * end_pose_.rotation().conj().haminus() * pose_jacobian_.block(4,0,4,DoF()) + 2 * end_pose_.dual().hamiplus() * C4_ * r_jacobian_;
 }
 
 } // namespace kinematics
