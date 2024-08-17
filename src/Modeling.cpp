@@ -211,21 +211,18 @@ void SerialManipulator::set_effector(const Pose& effector) noexcept {
 void SerialManipulator::update(const Pose& desired_pose) {
     USING_NAMESPACE_QPOASES;
 
-    double translation_priority = 0;
-    double err_gain = 50;
-
-    const Matxd& r_rd_jacobian = desired_pose.rotation().conj().haminus() * r_jacobian_;
-    const Matxd& Ht = (t_jacobian_.transpose() * t_jacobian_);
-    const Matxd& Hr = (r_rd_jacobian.transpose() * r_rd_jacobian);
+    const Matxd& r_rd_jacobian = desired_pose.rotation().haminus() * C4_ * r_jacobian_;
+    const Matxd& Ht = t_jacobian_.transpose() * t_jacobian_;
+    const Matxd& Hr = r_rd_jacobian.transpose() * r_rd_jacobian;
     const Vecxd& damping_vec = Vecxd::Ones(DoF()) * 0.0001;
     const Matxd& Hj = damping_vec.asDiagonal();
-    const Matxd& H = translation_priority * Ht + (1-translation_priority) * Hr + Hj;
+    const Matxd& H = cfg_.translation_priority * Ht + (1-cfg_.translation_priority) * Hr + Hj;
 
     const Vecxd& vec_et = (end_pose_.translation() - desired_pose.translation()).vec4();
     const Vecxd& vec_er = __closest_invariant_rotation_error(end_pose_.rotation(), desired_pose.rotation());
-    const Vecxd& ct = err_gain * vec_et.transpose() * t_jacobian_;
-    const Vecxd& cr = err_gain * vec_er.transpose() * r_rd_jacobian;
-    const Vecxd& g = translation_priority * ct + (1-translation_priority) * cr;
+    const Vecxd& ct = cfg_.error_gain * vec_et.transpose() * t_jacobian_;
+    const Vecxd& cr = cfg_.error_gain * vec_er.transpose() * r_rd_jacobian;
+    const Vecxd& g = cfg_.translation_priority * ct + (1-cfg_.translation_priority) * cr;
 
     const Matxd& constraint = Vecxd::Ones(DoF()).asDiagonal();
 
@@ -244,14 +241,14 @@ void SerialManipulator::update(const Pose& desired_pose) {
     bool first_time{true};
     if (first_time){
         auto nWSR_in_use = nWSR;
-        returnValue status = qp.init(H_raw, g_raw, A_raw, nullptr, nullptr, lb_raw, ub_raw, nWSR_in_use); 
+        returnValue status = qp.init(H_raw, g_raw, nullptr, nullptr, nullptr, nullptr, nullptr, nWSR_in_use); 
         if (status != SUCCESSFUL_RETURN){
             throw std::runtime_error("Failed to solve QP problem.\n");
         }
         first_time = false;
     }else{
         auto nWSR_in_use = nWSR;
-        returnValue status = qp.hotstart(H_raw, g_raw, A_raw, nullptr, nullptr, lb_raw, ub_raw, nWSR_in_use);
+        returnValue status = qp.hotstart(H_raw, g_raw, nullptr, nullptr, nullptr, nullptr, nullptr, nWSR_in_use);
         if (status != SUCCESSFUL_RETURN){
             throw std::runtime_error("Failed to solve QP problem.\n");
         }
@@ -260,7 +257,7 @@ void SerialManipulator::update(const Pose& desired_pose) {
     real_t xOpt[DoF()];
     qp.getPrimalSolution(xOpt);
     Eigen::Map<Vecxd> u(xOpt, DoF());
-    update_joint_signals(u*0.0004);
+    update_joint_signals(u*0.001);
 }
 
 void SerialManipulator::update_joint_positions(const Vecxd& joint_positions) {
@@ -342,7 +339,6 @@ void SerialManipulator::_update_jacobians() {
         pose_jacobian_.col(i) = pose_jacobian_i;
     }
     pose_jacobian_ = effector_.haminus() * base_.hamiplus() * pose_jacobian_;
-    std::cout << pose_jacobian_ << "\n";
     r_jacobian_ = pose_jacobian_.block(0,0,4,DoF());
     t_jacobian_ = end_pose_.rotation().conj().haminus() * (pose_jacobian_.block(4,0,4,DoF()) * 2 - end_pose_.translation().hamiplus() * r_jacobian_);
 

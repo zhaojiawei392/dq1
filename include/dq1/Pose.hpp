@@ -1533,5 +1533,7 @@ using Tran_jcb = Matd<4, -1>;
 const Axis i_(1,0,0);
 const Axis j_(0,1,0);
 const Axis k_(0,0,1);
+const Mat4d C4_ = (Mat4d() << 1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,-1).finished();
+const Mat8d C8_ = (Mat8d() << C4_, Mat4d::Zero(), C4_, Mat4d::Zero()).finished();
 
 }

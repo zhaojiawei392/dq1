@@ -62,8 +62,14 @@ public:
     virtual Vec8d calculate_jacobian(const double position=0) const override;
 };
 
+struct SerialManipulatorConfig{
+    double translation_priority{1};
+    double error_gain{50};
+};
+
 class SerialManipulator {
 protected:
+    SerialManipulatorConfig cfg_;
     std::vector<std::unique_ptr<Joint>> joints_;
     Pose base_;
     Pose effector_;
@@ -91,6 +97,7 @@ public:
     Vecxd max_joint_velocities() const noexcept;
     inline Pose end_pose() const noexcept {return end_pose_;};
     inline int DoF() const noexcept {return joints_.size();};
+    inline SerialManipulatorConfig& config() noexcept {return cfg_;}
 
 private:
     void _update_jacobians();
