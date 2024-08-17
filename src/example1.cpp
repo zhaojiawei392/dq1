@@ -44,48 +44,27 @@ void test1()
     Pose p4 = Pose::build_from(p1, p2, p3, r1, t1, t2, r2, t3);
 
     std::cout << "p4: " << p4 << "\n";
+
+    auto a1 = r1 * t1;
+    Pose p5 = r1 * p1;
+    Pose p6 = p2 * t2;
+    r2 * 3;
+    r2 + 3;
+    t2 * 3;
+    t2 + 3;
+    p2 * 3;
+    p2 + 3;
+
 }
 
 void test2(){
-    Matd<5, 6> dh; 
-    dh << M_PI, M_PI_2, -M_PI_2, 0, M_PI, 0,
-            0.345, 0, 0, 0.255, 0, 0.255,
-            0, 0.25, 0.01, 0, 0, 0,
-            M_PI_2, 0, -M_PI_2, M_PI_2, M_PI_2, 0,
-            0,0,0,0,0,0;
-    
-    
-    Matd<4, 6> limits;
-    limits << -150, -10, -10, -260, -90, -350,
-             150, 110, 150, 260, 100, 350,
-             -33, -32.1, -59.40, -60.50, -60.50, -90.80,
-             33, 32.1, 59.40, 60.50, 60.50, 90.80;
 
-    Vec6d pos;
-    pos << 0,0,0,0,0,0;
-
-    limits = limits * M_PI / 180;
-    kinematics::SerialManipulator sm(dh, limits, pos);
-
-    Rot r1(1);
-    Tran t1{-0.1,-0.2,-0.3};
-    Pose desired_pose = Pose::build_from(sm.end_pose(), r1, t1);
-
-    int i{0};
-    while (i<1000000000){
-
-        sm.update(desired_pose);
-        std::cout << "joint positions: " << sm.joint_positions().transpose() <<"\n";
-        std::cout << "rotation error: " << sm.end_pose().rotation().conj() * desired_pose.rotation() <<"\n";
-        std::cout << "translation error: " << sm.end_pose().translation() - desired_pose.translation() <<"\n";
-        ++i;
-    }
 }
 
 int main()
 {   
 
-    test2();
+    test1();
 
 
 }
