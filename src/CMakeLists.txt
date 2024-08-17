@@ -32,6 +32,8 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
     FILES_MATCHING PATTERN "*.hpp")
 
 # Examples
+message(STATUS "dq1_BUILD_EXAMPLES is set to ${dq1_BUILD_EXAMPLES}")
+
 if(dq1_BUILD_EXAMPLES)
     # Compile dq1 examples
     set(EXAMPLE_NAMES

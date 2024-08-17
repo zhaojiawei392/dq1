@@ -1363,7 +1363,7 @@ DualQuaternion<qScalar_> DualQuaternion<qScalar_>::normalized() const noexcept {
  */
 template<typename qScalar_>
 Mat8<qScalar_> DualQuaternion<qScalar_>::hamiplus() const noexcept {
-    return (Mat8<qScalar_>() << primary_.hamiplus(), Mat4<qScalar_>::Zero(), dual_.hamiplus(), primary_.haminus()).finished();
+    return (Mat8<qScalar_>() << primary_.hamiplus(), Mat4<qScalar_>::Zero(), dual_.hamiplus(), primary_.hamiplus()).finished();
 }
 
 /**
@@ -1372,7 +1372,7 @@ Mat8<qScalar_> DualQuaternion<qScalar_>::hamiplus() const noexcept {
  */
 template<typename qScalar_>
 Mat8<qScalar_> DualQuaternion<qScalar_>::haminus() const noexcept {
-    return (Mat8<qScalar_>() << primary_.haminus(), primary_.hamiplus(), dual_.haminus(), Mat4<qScalar_>::Zero()).finished();
+    return (Mat8<qScalar_>() << primary_.haminus(), Mat4<qScalar_>::Zero(), dual_.haminus(), primary_.haminus()).finished();
 }
 
 template<typename qScalar_>
@@ -1509,7 +1509,7 @@ UnitDualQuaternion<qScalar_>& UnitDualQuaternion<qScalar_>::normalize() noexcept
 namespace dq1{
 
 template<typename Scalar_>
-using T_Quat = Quaternion<Scalar_>;
+using T_Quaternion = Quaternion<Scalar_>;
 template<typename Scalar_>
 using T_Rotation = UnitQuaternion<Scalar_>;
 template<typename Scalar_>
@@ -1521,22 +1521,17 @@ using T_DQ = DualQuaternion<Scalar_>;
 template<typename Scalar_>
 using T_Pose = UnitDualQuaternion<Scalar_>; 
 
-using Quat = T_Quat<double>;
+using Quat = T_Quaternion<double>;
 using Rot = T_Rotation<double>;
-using Tslt = T_Translation<double>;
+using Tran = T_Translation<double>;
 using Axis = T_Axis<double>;
 using DQ = T_DQ<double>;
 using Pose = T_Pose<double>;
 using Pose_jcb = Matd<8, -1>;
 using Rot_jcb = Matd<4, -1>;
-using Tslt_jcb = Matd<4, -1>;
+using Tran_jcb = Matd<4, -1>;
 const Axis i_(1,0,0);
 const Axis j_(0,1,0);
 const Axis k_(0,0,1);
-const Mat4d C4_ = (Mat4d() << 1, 0,0,0,
-                            0,-1,0,0,
-                            0,0,-1,0,
-                            0,0,0,-1).finished();
-const Mat8d C8_ = (Mat8d() << C4_, Mat4d::Zero(),
-                            Mat4d::Zero(), C4_).finished();
+
 }
