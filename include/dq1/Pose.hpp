@@ -42,6 +42,32 @@ using Vecx=Eigen::Matrix<Scalar_, -1, 1>;
 using Vecxf=Eigen::Matrix<float, -1, 1>;
 using Vecxd=Eigen::Matrix<double, -1, 1>;
 
+
+template<typename Scalar_, int size>
+using RowVec=Eigen::Matrix<Scalar_, 1, size>;
+template<int size>
+using RowVecd=Eigen::Matrix<double, 1, size>;
+template<typename Scalar_>
+using RowVec3=Eigen::Matrix<Scalar_, 1, 3>;
+using RowVec3f=Eigen::Matrix<float, 1, 3>;
+using RowVec3d=Eigen::Matrix<double, 1, 3>;
+template<typename Scalar_>
+using RowVec4=Eigen::Matrix<Scalar_, 1, 4>;
+using RowVec4f=Eigen::Matrix<float, 1, 4>;
+using RowVec4d=Eigen::Matrix<double, 1, 4>;
+template<typename Scalar_>
+using RowVec6=Eigen::Matrix<Scalar_, 1, 6>;
+using RowVec6f=Eigen::Matrix<float, 1, 6>;
+using RowVec6d=Eigen::Matrix<double, 1, 6>;
+template<typename Scalar_>
+using RowVec8=Eigen::Matrix<Scalar_, 1, 8>;
+using RowVec8f=Eigen::Matrix<float, 1, 8>;
+using RowVec8d=Eigen::Matrix<double, 1, 8>;
+template<typename Scalar_>
+using RowVecx=Eigen::Matrix<Scalar_, 1, -1>;
+using RowVecxf=Eigen::Matrix<float, 1, -1>;
+using RowVecxd=Eigen::Matrix<double, 1, -1>;
+
 template<typename Scalar_, int rows_, int cols_>
 using Mat=Eigen::Matrix<Scalar_, rows_, cols_>;
 template<int rows_, int cols_>

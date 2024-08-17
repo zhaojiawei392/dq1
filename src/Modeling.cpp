@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <qpOASES.hpp>
+#include <nlohmann/json.hpp>
+#include <fstream>
 
 namespace dq1{
 
@@ -18,9 +20,15 @@ const Vecxd __closest_invariant_rotation_error(const Rot& r, const Rot& rd) {
     }
 }
 
-void __check_size(const std::string& src_info, const std::string& des_info, int src_size, int des_size){
+void __check_size_equality(const std::string& src_info, const std::string& des_info, int src_size, int des_size){
     if (src_size != des_size){
         throw std::range_error(src_info + " invalid size " + std::to_string(src_size) + ", should be equal to " + des_info + " " + std::to_string(des_size) + ".\n" );
+    }
+}
+
+void __check_size_inequality(const std::string& src_info, const std::string& des_info, int src_size, int des_size){
+    if (src_size == des_size){
+        throw std::range_error(src_info + " invalid size " + std::to_string(src_size) + ", should NOT be equal to " + des_info + " " + std::to_string(des_size) + ".\n" );
     }
 }
 
@@ -170,34 +178,72 @@ Vec8d PrismaticJoint::calculate_jacobian(const double position) const { // Inten
 // ***********************************************************************************************************************
 
 
-SerialManipulator::SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4, -1>& joint_limits, const Vecxd& joint_positions) {
-    if (DH_params.cols() == 0 ){
-        throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) arg0 cols invalid size 0, should be DoF bigger than 0.\n");
-    }
+SerialManipulator::SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions) {
     int DOF = DH_params.cols();
-    __check_size("SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4, -1>& joint_limits, const Vecxd& joint_positions) arg1 cols", "DoF",joint_limits.cols(), DOF);
-    __check_size("SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4, -1>& joint_limits, const Vecxd& joint_positions) arg2", "DoF",joint_positions.size(), DOF);
+    __check_size_inequality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions) arg0 cols", "DoF", DOF, 0);
+    __check_size_equality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions) arg1 cols", "DoF",joint_limits.cols(), DOF);
+    __check_size_equality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions) arg2", "DoF",joint_positions.size(), DOF);
     
-    joint_poses_.resize(DOF);
-    pose_jacobian_.resize(8, DOF);
-    r_jacobian_.resize(4, DOF);
-    t_jacobian_.resize(4, DOF);
+    _construct(DH_params, joint_limits, joint_positions);
+}
 
+SerialManipulator::SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions){
 
-    // instantiate remaining joints
-    for (int i=0; i<DOF; ++i){
-        if (DH_params(4, i) == 0){
-            joints_.push_back(std::make_unique<RevoluteJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i), joint_positions[i]));
-        } else if (DH_params(4, i) == 1){
-            joints_.push_back(std::make_unique<PrismaticJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i), joint_positions[i]));
-        } else {
-            throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) arg0 5-th row DH_params[4, " + std::to_string(i) + "] = " + std::to_string(DH_params(4, i)) + ", this row should consist only of 0 or 1.(0: Revolute joint, 1: Prismatic joint)\n");
-        }
+    std::ifstream json_file(params_file_path);
+
+    // Check if the file was opened successfully
+    if (!json_file.is_open()) {
+        throw std::runtime_error("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) Could not open the JSON file.");
     }
-    const Vecxd initial_signals = Vecxd::Zero(DoF());
-    update_joint_signals(initial_signals);
 
-    std::cout << "A Kinematics::SerialManipulator constructed! DoF = " + std::to_string(DOF) + ".\n" ;
+    // Parse the JSON file into a json object
+    nlohmann::json data = nlohmann::json::parse(json_file);
+    // Close the file
+    json_file.close();
+
+    // DH parameters
+    std::vector<double> theta = data["DH_params"]["theta"];
+    std::vector<double> d = data["DH_params"]["d"];
+    std::vector<double> a = data["DH_params"]["a"];
+    std::vector<double> alpha = data["DH_params"]["alpha"];
+    std::vector<double> joint_types = data["DH_params"]["joint_types"];
+
+    int DOF = theta.size(); 
+
+    __check_size_inequality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 theta", "DoF", DOF, 0);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 d", "DoF",d.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 a", "DoF",a.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 alpha", "DoF",alpha.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 joint_types", "DoF",joint_types.size(), DOF);
+    
+
+    DH_mat DH_params;
+    DH_params.resize(5, DOF);
+    DH_params.row(0) = Eigen::Map<RowVecxd>(theta.data(), DOF) / 180 * M_PI;
+    DH_params.row(1) = Eigen::Map<RowVecxd>(d.data(), DOF);
+    DH_params.row(2) = Eigen::Map<RowVecxd>(a.data(), DOF);
+    DH_params.row(3) = Eigen::Map<RowVecxd>(alpha.data(), DOF) / 180 * M_PI;
+    DH_params.row(4) = Eigen::Map<RowVecxd>(joint_types.data(), DOF);
+
+    // Joint limits
+    std::vector<double> min_joint_position = data["joint_limits"]["min_joint_position"];
+    std::vector<double> max_joint_position = data["joint_limits"]["max_joint_position"];
+    std::vector<double> min_joint_velocities = data["joint_limits"]["min_joint_velocities"];
+    std::vector<double> max_joint_velocities = data["joint_limits"]["max_joint_velocities"];
+
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 min_joint_position", "DoF",min_joint_position.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 max_joint_position", "DoF",max_joint_position.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 min_joint_velocities", "DoF",min_joint_velocities.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 max_joint_velocities", "DoF",max_joint_velocities.size(), DOF);
+
+    Joint_limit_mat joint_limits;
+    joint_limits.resize(4, DOF);
+    joint_limits.row(0) = Eigen::Map<RowVecxd>(min_joint_position.data(), DOF) / 180 * M_PI;
+    joint_limits.row(1) = Eigen::Map<RowVecxd>(max_joint_position.data(), DOF) / 180 * M_PI;
+    joint_limits.row(2) = Eigen::Map<RowVecxd>(min_joint_velocities.data(), DOF) / 180 * M_PI;
+    joint_limits.row(3) = Eigen::Map<RowVecxd>(max_joint_velocities.data(), DOF) / 180 * M_PI;
+
+    _construct(DH_params, joint_limits, joint_positions);
 }
 
 void SerialManipulator::set_base(const Pose& base) noexcept {
@@ -261,7 +307,7 @@ void SerialManipulator::update(const Pose& desired_pose) {
 }
 
 void SerialManipulator::update_joint_positions(const Vecxd& joint_positions) {
-    __check_size("update_joint_positions(const Vecxd& joint_positions)", "DoF", joint_positions.size(), DoF());
+    __check_size_equality("update_joint_positions(const Vecxd& joint_positions)", "DoF", joint_positions.size(), DoF());
     
     joints_[0]->update(joint_positions[0]);
     joint_poses_[0] = joints_[0]->fkm();
@@ -275,7 +321,7 @@ void SerialManipulator::update_joint_positions(const Vecxd& joint_positions) {
 }
 
 void SerialManipulator::update_joint_signals(const Vecxd& joint_signals) {
-    __check_size("update_joint_positions(const Vecxd& joint_signals)", "DoF", joint_signals.size(), DoF());
+    __check_size_equality("update_joint_positions(const Vecxd& joint_signals)", "DoF", joint_signals.size(), DoF());
     
     joints_[0]->update_signal(joint_signals[0]);
     joint_poses_[0] = joints_[0]->fkm();
@@ -341,6 +387,32 @@ void SerialManipulator::_update_jacobians() {
     pose_jacobian_ = effector_.haminus() * base_.hamiplus() * pose_jacobian_;
     r_jacobian_ = pose_jacobian_.block(0,0,4,DoF());
     t_jacobian_ = 2 * end_pose_.rotation().conj().haminus() * pose_jacobian_.block(4,0,4,DoF()) + 2 * end_pose_.dual().hamiplus() * C4_ * r_jacobian_;
+}
+
+void SerialManipulator::_construct(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions){
+
+    int DOF = DH_params.cols();
+
+    joint_poses_.resize(DOF);
+    pose_jacobian_.resize(8, DOF);
+    r_jacobian_.resize(4, DOF);
+    t_jacobian_.resize(4, DOF);
+
+
+    // instantiate remaining joints
+    for (int i=0; i<DOF; ++i){
+        if (DH_params(4, i) == 0){
+            joints_.push_back(std::make_unique<RevoluteJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i), joint_positions[i]));
+        } else if (DH_params(4, i) == 1){
+            joints_.push_back(std::make_unique<PrismaticJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i), joint_positions[i]));
+        } else {
+            throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) arg0 5-th row DH_params[4, " + std::to_string(i) + "] = " + std::to_string(DH_params(4, i)) + ", this row should consist only of 0 or 1.(0: Revolute joint, 1: Prismatic joint)\n");
+        }
+    }
+    const Vecxd initial_signals = Vecxd::Zero(DoF());
+    update_joint_signals(initial_signals);
+
+    std::cout << "A Kinematics::SerialManipulator constructed! DoF = " + std::to_string(DOF) + ".\n" ;
 }
 
 } // namespace kinematics

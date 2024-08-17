@@ -68,6 +68,9 @@ struct SerialManipulatorConfig{
     double sampling_time_sec{0.0004};
 };
 
+using DH_mat = Matd<5, -1>;
+using Joint_limit_mat = Matd<4, -1>;
+
 class SerialManipulator {
 protected:
     SerialManipulatorConfig cfg_;
@@ -81,7 +84,8 @@ protected:
     Tran_jcb t_jacobian_;
 public:
     SerialManipulator() = delete;
-    SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4, -1>& joint_limits, const Vecxd& joint_positions);
+    SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions);
+    SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions);
     virtual ~SerialManipulator() = default;
 
     void set_base(const Pose& base) noexcept;
@@ -102,6 +106,7 @@ public:
 
 private:
     void _update_jacobians();
+    void _construct(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions);
 };
 
 } // namespace kinematics
