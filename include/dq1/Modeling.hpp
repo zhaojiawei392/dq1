@@ -1,8 +1,7 @@
 #pragma once
-#include "Pose.hpp"
 #include <memory>
-#include <qpOASES.hpp>
 #include <vector>
+#include "Pose.hpp"
 
 namespace dq1
 {
@@ -12,7 +11,7 @@ namespace kinematics
 class Joint {
 protected:
     double pos_;  // joint position
-    Vec4d limits_; // {min position, max position, min speed, max speed}
+    Vec4d limits_; // {min position, max position, min velocitiy, max velocitiy}
     Pose fkm_;  // forward kinematics, pose transformation from reference to end  
     Vec8d jcb_;  // jacobian of reference end pose with respect to joint position
     void _check_limits();
@@ -29,14 +28,14 @@ public:
     virtual Pose calculate_fkm(const double position) const = 0;
     virtual Vec8d calculate_jacobian(const double position) const = 0;
 
-    double position() const noexcept;
-    Vec4d motion_limits() const noexcept;
-    Pose fkm() const noexcept;
-    Vec8d jacobian() const noexcept;
-    double min_position() const noexcept;
-    double max_position() const noexcept;
-    double min_speed() const noexcept;
-    double max_speed() const noexcept;
+    inline double position() const noexcept {return pos_;};
+    inline Vec4d motion_limits() const noexcept {return limits_;};
+    inline Pose fkm() const noexcept {return fkm_;};
+    inline Vec8d jacobian() const noexcept {return jcb_;};
+    inline double min_position() const noexcept {return limits_[0];};
+    inline double max_position() const noexcept {return limits_[1];};
+    inline double min_velocitiy() const noexcept {return limits_[2];};
+    inline double max_velocitiy() const noexcept {return limits_[3];};
 };
 
 class RevoluteJoint : public Joint {
@@ -63,19 +62,30 @@ public:
     virtual Vec8d calculate_jacobian(const double position=0) const override;
 };
 
+struct SerialManipulatorConfig{
+    double translation_priority{1};
+    double error_gain{50};
+    double sampling_time_sec{0.0004};
+};
+
+using DH_mat = Matd<5, -1>;
+using Joint_limit_mat = Matd<4, -1>;
+
 class SerialManipulator {
 protected:
+    SerialManipulatorConfig cfg_;
     std::vector<std::unique_ptr<Joint>> joints_;
     Pose base_;
     Pose effector_;
-    Pose abs_end_;
+    Pose end_pose_;
     std::vector<Pose> joint_poses_; 
     Pose_jcb pose_jacobian_;
     Rot_jcb r_jacobian_;
-    Tslt_jcb t_jacobian_;
+    Tran_jcb t_jacobian_;
 public:
     SerialManipulator() = delete;
-    SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4, -1>& joint_limits, const Vecxd& joint_positions);
+    SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions);
+    SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions);
     virtual ~SerialManipulator() = default;
 
     void set_base(const Pose& base) noexcept;
@@ -88,13 +98,15 @@ public:
     Vecxd joint_positions() const noexcept;
     Vecxd min_joint_positions() const noexcept;
     Vecxd max_joint_positions() const noexcept;
-    Vecxd min_joint_speeds() const noexcept;
-    Vecxd max_joint_speeds() const noexcept;
-    Pose end_pose() const noexcept;
-    int DoF() const noexcept;
+    Vecxd min_joint_velocities() const noexcept;
+    Vecxd max_joint_velocities() const noexcept;
+    inline Pose end_pose() const noexcept {return end_pose_;};
+    inline int DoF() const noexcept {return joints_.size();};
+    inline SerialManipulatorConfig& config() noexcept {return cfg_;}
 
 private:
     void _update_jacobians();
+    void _construct(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions);
 };
 
 } // namespace kinematics

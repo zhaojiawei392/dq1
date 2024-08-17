@@ -1,6 +1,6 @@
 
 #include <iostream>
-#include "dq1.hpp"
+#include "../include/dq1.hpp"
 
 using namespace dq1;
 
@@ -21,10 +21,10 @@ void test1()
     std::cout << "r2: " << r2 << "\n";
     std::cout << "r3: " << r3 << "\n";
 
-    Tslt t0;
-    Tslt t1{1,2,3};
-    Tslt t2{4,5,6};
-    Tslt t3{7,8,9};
+    Tran t0;
+    Tran t1{1,2,3};
+    Tran t2{4,5,6};
+    Tran t3{7,8,9};
 
     std::cout << "t0: " << t0 << "\n";
     std::cout << "t1: " << t1 << "\n";
@@ -49,7 +49,7 @@ void test1()
 void test2(){
     Matd<5, 6> dh; 
     dh << M_PI, M_PI_2, -M_PI_2, 0, M_PI, 0,
-            0.345, 0, 0, 0.255, 0, 0,
+            0.345, 0, 0, 0.255, 0, 0.255,
             0, 0.25, 0.01, 0, 0, 0,
             M_PI_2, 0, -M_PI_2, M_PI_2, M_PI_2, 0,
             0,0,0,0,0,0;
@@ -66,17 +66,10 @@ void test2(){
 
     limits = limits * M_PI / 180;
     kinematics::SerialManipulator sm(dh, limits, pos);
-    std::cout << "joint positions: " << sm.joint_positions().transpose() <<"\n";
-    // std::cout << "end pose: " << sm.end_pose()<<"\n";
-    std::cout << "end rotation: " << sm.end_pose().rotation() << "\n";
-    std::cout << "end translation: " << sm.end_pose().translation() << "\n";
 
     Rot r1(1);
-    Tslt t1{-0.1,-0.2,-0.3};
+    Tran t1{-0.1,-0.2,-0.3};
     Pose desired_pose = Pose::build_from(sm.end_pose(), r1, t1);
-    // std::cout << "desired_pose: " << desired_pose << "\n";
-    std::cout << "desired_pose rotation: " << desired_pose.rotation() << "\n";
-    std::cout << "desired_pose translation: " << desired_pose.translation() << "\n";
 
     int i{0};
     while (i<1000000000){

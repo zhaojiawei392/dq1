@@ -1,4 +1,4 @@
-add_library(dq1 STATIC Modeling.cpp)
+add_library(dq1 SHARED Modeling.cpp)
 
 set_property(TARGET dq1 PROPERTY VERSION ${PACKAGE_VERSION})
 set_property(TARGET dq1 PROPERTY SOVERSION ${PACKAGE_SO_VERSION})
@@ -32,6 +32,8 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
     FILES_MATCHING PATTERN "*.hpp")
 
 # Examples
+message(STATUS "dq1_BUILD_EXAMPLES is set to ${dq1_BUILD_EXAMPLES}")
+
 if(dq1_BUILD_EXAMPLES)
     # Compile dq1 examples
     set(EXAMPLE_NAMES
