@@ -65,6 +65,7 @@ public:
 struct SerialManipulatorConfig{
     double translation_priority{1};
     double error_gain{50};
+    double sampling_time_sec{0.0004};
 };
 
 class SerialManipulator {

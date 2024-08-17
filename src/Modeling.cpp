@@ -197,7 +197,7 @@ SerialManipulator::SerialManipulator(const Matd<5, -1>& DH_params, const Matd<4,
     const Vecxd initial_signals = Vecxd::Zero(DoF());
     update_joint_signals(initial_signals);
 
-    std::cout << "A " + std::to_string(DOF) + " DoF Kinematics::SerialManipulator constructed!\n" ;
+    std::cout << "A Kinematics::SerialManipulator constructed! DoF = " + std::to_string(DOF) + ".\n" ;
 }
 
 void SerialManipulator::set_base(const Pose& base) noexcept {
@@ -257,7 +257,7 @@ void SerialManipulator::update(const Pose& desired_pose) {
     real_t xOpt[DoF()];
     qp.getPrimalSolution(xOpt);
     Eigen::Map<Vecxd> u(xOpt, DoF());
-    update_joint_signals(u*0.001);
+    update_joint_signals(u*cfg_.sampling_time_sec);
 }
 
 void SerialManipulator::update_joint_positions(const Vecxd& joint_positions) {
