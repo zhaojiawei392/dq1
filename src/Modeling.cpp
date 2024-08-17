@@ -398,7 +398,6 @@ void SerialManipulator::_construct(const DH_mat& DH_params, const Joint_limit_ma
     r_jacobian_.resize(4, DOF);
     t_jacobian_.resize(4, DOF);
 
-
     // instantiate remaining joints
     for (int i=0; i<DOF; ++i){
         if (DH_params(4, i) == 0){
@@ -412,7 +411,7 @@ void SerialManipulator::_construct(const DH_mat& DH_params, const Joint_limit_ma
     const Vecxd initial_signals = Vecxd::Zero(DoF());
     update_joint_signals(initial_signals);
 
-    std::cout << "A Kinematics::SerialManipulator constructed! DoF = " + std::to_string(DOF) + ".\n" ;
+    std::cout << "A Kinematics::SerialManipulator constructed!! DoF = " + std::to_string(DOF) + ".\n" ;
 }
 
 } // namespace kinematics
