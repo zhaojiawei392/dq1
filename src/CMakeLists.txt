@@ -16,7 +16,14 @@ set_target_properties(dq1 PROPERTIES
 find_package(
     qpOASES REQUIRED
     nlohmann_json 3.11.3 REQUIRED
+    Eigen3 3.3 REQUIRED
+    Boost
 )
+
+
+include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${EIGEN3_INCLUDE_DIR})
+
 target_link_libraries(dq1 PUBLIC dq1_compiler_flags)
 target_link_libraries(dq1 PRIVATE
     qpOASES
