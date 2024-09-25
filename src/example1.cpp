@@ -2,7 +2,7 @@
 #include <iostream>
 #include "../include/dq1.hpp"
 
-using namespace dq1;
+namespace test{
 
 void test1()
 {
@@ -60,11 +60,13 @@ void test1()
 void test2(){
 
 }
+}
 
 int main()
 {   
 
-    test1();
+    test::test1();
 
 
 }
+

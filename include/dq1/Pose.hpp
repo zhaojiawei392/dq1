@@ -7,6 +7,7 @@
 
 namespace dq1
 {
+
 template <typename T>
 T square(const T& x) {
     return x * x;
@@ -17,82 +18,44 @@ constexpr double FLOAT_OMIT_THRESHOLD = 0.00000001;
 constexpr double FLOAT_ERROR_THRESHOLD = 0.0001;
 constexpr bool VERY_VERBOSE = false;
 
-template<typename Scalar_, int size>
+template<typename Scalar_, size_t size>
 using Vec=Eigen::Matrix<Scalar_, size, 1>;
-template<int size>
-using Vecd=Eigen::Matrix<double, size, 1>;
 template<typename Scalar_>
 using Vec3=Eigen::Matrix<Scalar_, 3, 1>;
-using Vec3f=Eigen::Matrix<float, 3, 1>;
-using Vec3d=Eigen::Matrix<double, 3, 1>;
 template<typename Scalar_>
 using Vec4=Eigen::Matrix<Scalar_, 4, 1>;
-using Vec4f=Eigen::Matrix<float, 4, 1>;
-using Vec4d=Eigen::Matrix<double, 4, 1>;
 template<typename Scalar_>
 using Vec6=Eigen::Matrix<Scalar_, 6, 1>;
-using Vec6f=Eigen::Matrix<float, 6, 1>;
-using Vec6d=Eigen::Matrix<double, 6, 1>;
 template<typename Scalar_>
 using Vec8=Eigen::Matrix<Scalar_, 8, 1>;
-using Vec8f=Eigen::Matrix<float, 8, 1>;
-using Vec8d=Eigen::Matrix<double, 8, 1>;
 template<typename Scalar_>
 using Vecx=Eigen::Matrix<Scalar_, -1, 1>;
-using Vecxf=Eigen::Matrix<float, -1, 1>;
-using Vecxd=Eigen::Matrix<double, -1, 1>;
-
 
 template<typename Scalar_, int size>
 using RowVec=Eigen::Matrix<Scalar_, 1, size>;
-template<int size>
-using RowVecd=Eigen::Matrix<double, 1, size>;
 template<typename Scalar_>
 using RowVec3=Eigen::Matrix<Scalar_, 1, 3>;
-using RowVec3f=Eigen::Matrix<float, 1, 3>;
-using RowVec3d=Eigen::Matrix<double, 1, 3>;
 template<typename Scalar_>
 using RowVec4=Eigen::Matrix<Scalar_, 1, 4>;
-using RowVec4f=Eigen::Matrix<float, 1, 4>;
-using RowVec4d=Eigen::Matrix<double, 1, 4>;
 template<typename Scalar_>
 using RowVec6=Eigen::Matrix<Scalar_, 1, 6>;
-using RowVec6f=Eigen::Matrix<float, 1, 6>;
-using RowVec6d=Eigen::Matrix<double, 1, 6>;
 template<typename Scalar_>
 using RowVec8=Eigen::Matrix<Scalar_, 1, 8>;
-using RowVec8f=Eigen::Matrix<float, 1, 8>;
-using RowVec8d=Eigen::Matrix<double, 1, 8>;
 template<typename Scalar_>
 using RowVecx=Eigen::Matrix<Scalar_, 1, -1>;
-using RowVecxf=Eigen::Matrix<float, 1, -1>;
-using RowVecxd=Eigen::Matrix<double, 1, -1>;
 
 template<typename Scalar_, int rows_, int cols_>
 using Mat=Eigen::Matrix<Scalar_, rows_, cols_>;
-template<int rows_, int cols_>
-using Matd=Eigen::Matrix<double, rows_, cols_>;
 template<typename Scalar_>
 using Mat3=Eigen::Matrix<Scalar_, 3, 3>;
-using Mat3f=Eigen::Matrix<float, 3, 3>;
-using Mat3d=Eigen::Matrix<double, 3, 3>;
 template<typename Scalar_>
 using Mat4=Eigen::Matrix<Scalar_, 4, 4>;
-using Mat4f=Eigen::Matrix<float, 4, 4>;
-using Mat4d=Eigen::Matrix<double, 4, 4>;
 template<typename Scalar_>
 using Mat6=Eigen::Matrix<Scalar_, 6, 6>;
-using Mat6f=Eigen::Matrix<float, 6, 6>;
-using Mat6d=Eigen::Matrix<double, 6, 6>;
 template<typename Scalar_>
 using Mat8=Eigen::Matrix<Scalar_, 8, 8>;
-using Mat8f=Eigen::Matrix<float, 8, 8>;
-using Mat8d=Eigen::Matrix<double, 8, 8>;
 template<typename Scalar_>
 using Matx=Eigen::Matrix<Scalar_, -1, -1>;
-template<typename Scalar_>
-using Matxf=Eigen::Matrix<float, -1, -1>;
-using Matxd=Eigen::Matrix<double, -1, -1>;
 
 template<typename qScalar_>
 class Quaternion;
@@ -1442,31 +1405,13 @@ UnitDualQuaternion<qScalar_>& UnitDualQuaternion<qScalar_>::normalize() noexcept
 namespace dq1{
 
 template<typename Scalar_>
-using T_Quaternion = Quaternion<Scalar_>;
+using Rotation = UnitQuaternion<Scalar_>;
 template<typename Scalar_>
-using T_Rotation = UnitQuaternion<Scalar_>;
+using Translation = PureQuaternion<Scalar_>;
 template<typename Scalar_>
-using T_Translation = PureQuaternion<Scalar_>;
+using BaseAxis = UnitPureQuaternion<Scalar_>;
 template<typename Scalar_>
-using T_Axis = UnitPureQuaternion<Scalar_>;
-template<typename Scalar_>
-using T_DQ = DualQuaternion<Scalar_>;
-template<typename Scalar_>
-using T_Pose = UnitDualQuaternion<Scalar_>; 
+using Pose = UnitDualQuaternion<Scalar_>; 
 
-using Quat = T_Quaternion<double>;
-using Rot = T_Rotation<double>;
-using Tran = T_Translation<double>;
-using Axis = T_Axis<double>;
-using DQ = T_DQ<double>;
-using Pose = T_Pose<double>;
-using Pose_jcb = Matd<8, -1>;
-using Rot_jcb = Matd<4, -1>;
-using Tran_jcb = Matd<4, -1>;
-const Axis i_(1,0,0);
-const Axis j_(0,1,0);
-const Axis k_(0,0,1);
-const Mat4d C4_ = (Mat4d() << 1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,-1).finished();
-const Mat8d C8_ = (Mat8d() << C4_, Mat4d::Zero(), C4_, Mat4d::Zero()).finished();
 
 }

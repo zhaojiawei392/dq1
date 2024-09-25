@@ -9,7 +9,7 @@ namespace dq1{
 
 namespace kinematics{
 
-const Vecxd __closest_invariant_rotation_error(const Rot& r, const Rot& rd) {
+const Vecx __closest_invariant_rotation_error(const Rot& r, const Rot& rd) {
     Quat er_plus = r.conj() * rd - Quat(1);
     Quat er_minus = r.conj() * rd + Quat(1);
 
@@ -20,13 +20,13 @@ const Vecxd __closest_invariant_rotation_error(const Rot& r, const Rot& rd) {
     }
 }
 
-void __check_size_equality(const std::string& src_info, const std::string& des_info, int src_size, int des_size){
+void __check_size_equality(const std::string& src_info, const std::string& des_info, size_t src_size, size_t des_size){
     if (src_size != des_size){
         throw std::range_error(src_info + " invalid size " + std::to_string(src_size) + ", should be equal to " + des_info + " " + std::to_string(des_size) + ".\n" );
     }
 }
 
-void __check_size_inequality(const std::string& src_info, const std::string& des_info, int src_size, int des_size){
+void __check_size_inequality(const std::string& src_info, const std::string& des_info, size_t src_size, size_t des_size){
     if (src_size == des_size){
         throw std::range_error(src_info + " invalid size " + std::to_string(src_size) + ", should NOT be equal to " + des_info + " " + std::to_string(des_size) + ".\n" );
     }
@@ -39,7 +39,7 @@ void __check_size_inequality(const std::string& src_info, const std::string& des
 // ***********************************************************************************************************************
 
 
-Joint::Joint(const Vec4d motion_limits)
+Joint::Joint(const Vec4 motion_limits)
     : limits_(motion_limits) {
     _check_limits();
 }
@@ -50,7 +50,7 @@ void Joint::_check_limits() {
     }
 }
 
-void Joint::_make_position_within_limits(double& position) {
+void Joint::_make_position_within_limits(scalar_t& position) {
     if (position < limits_[0]) 
         position = limits_[0];
     if (position > limits_[1]) 
@@ -64,18 +64,18 @@ void Joint::_make_position_within_limits(double& position) {
 // ***********************************************************************************************************************
 
 
-RevoluteJoint::RevoluteJoint(const Vec4d DH_parameters, const Vec4d motion_limits)
+RevoluteJoint::RevoluteJoint(const Vec4 DH_parameters, const Vec4 motion_limits)
     : Joint(motion_limits), DH_params_(DH_parameters) {
 }
 
-Pose RevoluteJoint::fkm(const double position) const {
+Pose RevoluteJoint::fkm(const scalar_t position) const {
     
-    double theta_real = cos( 0.5 * (DH_params_[0] + position) );
-    double theta_im = sin( 0.5 * (DH_params_[0] + position) );
-    double alpha_real = cos( 0.5 * DH_params_[3] );
-    double alpha_im = sin( 0.5 * DH_params_[3] );
-    double d = DH_params_[1];
-    double a = DH_params_[2];
+    scalar_t theta_real = cos( 0.5 * (DH_params_[0] + position) );
+    scalar_t theta_im = sin( 0.5 * (DH_params_[0] + position) );
+    scalar_t alpha_real = cos( 0.5 * DH_params_[3] );
+    scalar_t alpha_im = sin( 0.5 * DH_params_[3] );
+    scalar_t d = DH_params_[1];
+    scalar_t a = DH_params_[2];
     return Pose{
         theta_real * alpha_real,
         theta_real * alpha_im,
@@ -88,14 +88,14 @@ Pose RevoluteJoint::fkm(const double position) const {
     };
 }
 
-Vec8d RevoluteJoint::pose_jacobian(const double position) const {
-    double theta_dot_real = -0.5 * sin(0.5 * (DH_params_[0] + position));
-    double theta_dot_im = 0.5 * cos(0.5 * (DH_params_[0] + position));
-    double alpha_real = cos(0.5 * DH_params_[3]);
-    double alpha_im = sin(0.5 * DH_params_[3]);
-    double d = DH_params_[1];
-    double a = DH_params_[2];
-    return Vec8d{
+Vec8 RevoluteJoint::pose_jacobian(const scalar_t position) const {
+    scalar_t theta_dot_real = -0.5 * sin(0.5 * (DH_params_[0] + position));
+    scalar_t theta_dot_im = 0.5 * cos(0.5 * (DH_params_[0] + position));
+    scalar_t alpha_real = cos(0.5 * DH_params_[3]);
+    scalar_t alpha_im = sin(0.5 * DH_params_[3]);
+    scalar_t d = DH_params_[1];
+    scalar_t a = DH_params_[2];
+    return Vec8{
         theta_dot_real * alpha_real,
         theta_dot_real * alpha_im,
         theta_dot_im * alpha_im,
@@ -116,16 +116,16 @@ Vec8d RevoluteJoint::pose_jacobian(const double position) const {
 // ***********************************************************************************************************************
 
 
-PrismaticJoint::PrismaticJoint(const Vec4d DH_parameters, const Vec4d motion_limits)
+PrismaticJoint::PrismaticJoint(const Vec4 DH_parameters, const Vec4 motion_limits)
     : Joint(motion_limits), DH_params_(DH_parameters) {}
 
-Pose PrismaticJoint::fkm(const double position) const {
-    double theta_real = cos( 0.5 * DH_params_[0] );
-    double theta_im = sin( 0.5 * DH_params_[0] );
-    double alpha_real = cos( 0.5 * DH_params_[3] );
-    double alpha_im = sin( 0.5 * DH_params_[3] );
-    double d = DH_params_[1] + position;
-    double a = DH_params_[2];
+Pose PrismaticJoint::fkm(const scalar_t position) const {
+    scalar_t theta_real = cos( 0.5 * DH_params_[0] );
+    scalar_t theta_im = sin( 0.5 * DH_params_[0] );
+    scalar_t alpha_real = cos( 0.5 * DH_params_[3] );
+    scalar_t alpha_im = sin( 0.5 * DH_params_[3] );
+    scalar_t d = DH_params_[1] + position;
+    scalar_t a = DH_params_[2];
     return Pose{
         theta_real * alpha_real,
         theta_real * alpha_im,
@@ -138,15 +138,15 @@ Pose PrismaticJoint::fkm(const double position) const {
     };
 }
 
-Vec8d PrismaticJoint::pose_jacobian(const double position) const { // Intentionally unused arg, only for satisfying virtual function signature
+Vec8 PrismaticJoint::pose_jacobian(const scalar_t position) const { // Intentionally unused arg, only for satisfying virtual function signature
     
-    double theta_real = sin(0.5 * DH_params_[0]);
-    double theta_im = cos(0.5 * DH_params_[0]);
-    double alpha_real = cos(0.5 * DH_params_[3]);
-    double alpha_im = sin(0.5 * DH_params_[3]);
-    // double d = 1;
-    // double a = 0;
-    return Vec8d{
+    scalar_t theta_real = sin(0.5 * DH_params_[0]);
+    scalar_t theta_im = cos(0.5 * DH_params_[0]);
+    scalar_t alpha_real = cos(0.5 * DH_params_[3]);
+    scalar_t alpha_im = sin(0.5 * DH_params_[3]);
+    // scalar_t d = 1;
+    // scalar_t a = 0;
+    return Vec8{
         0,
         0,
         0,
@@ -167,22 +167,22 @@ Vec8d PrismaticJoint::pose_jacobian(const double position) const { // Intentiona
 // ***********************************************************************************************************************
 
 
-SerialManipulator::SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions) {
-    int DOF = DH_params.cols();
-    __check_size_inequality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions) arg0 cols", "DoF", DOF, 0);
-    __check_size_equality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions) arg1 cols", "DoF",joint_limits.cols(), DOF);
-    __check_size_equality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions) arg2", "DoF",joint_positions.size(), DOF);
-    
+SerialManipulator::SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions) {
+    size_t DOF = DH_params.cols();
+    __check_size_inequality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions) arg0 cols", "DoF", DOF, 0);
+    __check_size_equality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions) arg1 cols", "DoF",joint_limits.cols(), DOF);
+    __check_size_equality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions) arg2", "DoF",joint_positions.size(), DOF);
+
     _construct(DH_params, joint_limits, joint_positions);
 }
 
-SerialManipulator::SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions){
+SerialManipulator::SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions){
 
     std::ifstream json_file(params_file_path);
 
     // Check if the file was opened successfully
     if (!json_file.is_open()) {
-        throw std::runtime_error("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) Could not open the JSON file.");
+        throw std::runtime_error("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) Could not open the JSON file.");
     }
 
     // Parse the JSON file into a json object
@@ -191,46 +191,46 @@ SerialManipulator::SerialManipulator(const std::string& params_file_path, const 
     json_file.close();
 
     // DH parameters
-    std::vector<double> theta = data["DH_params"]["theta"];
-    std::vector<double> d = data["DH_params"]["d"];
-    std::vector<double> a = data["DH_params"]["a"];
-    std::vector<double> alpha = data["DH_params"]["alpha"];
-    std::vector<double> joint_types = data["DH_params"]["joint_types"];
+    std::vector<scalar_t> theta = data["DH_params"]["theta"];
+    std::vector<scalar_t> d = data["DH_params"]["d"];
+    std::vector<scalar_t> a = data["DH_params"]["a"];
+    std::vector<scalar_t> alpha = data["DH_params"]["alpha"];
+    std::vector<scalar_t> joint_types = data["DH_params"]["joint_types"];
 
-    int DOF = theta.size(); 
+    size_t DOF = theta.size(); 
 
-    __check_size_inequality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 theta", "DoF", DOF, 0);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 d", "DoF",d.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 a", "DoF",a.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 alpha", "DoF",alpha.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 joint_types", "DoF",joint_types.size(), DOF);
+    __check_size_inequality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 theta", "DoF", DOF, 0);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 d", "DoF",d.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 a", "DoF",a.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 alpha", "DoF",alpha.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 joint_types", "DoF",joint_types.size(), DOF);
     
 
     DH_mat DH_params;
     DH_params.resize(5, DOF);
-    DH_params.row(0) = Eigen::Map<RowVecxd>(theta.data(), DOF) / 180 * M_PI;
-    DH_params.row(1) = Eigen::Map<RowVecxd>(d.data(), DOF);
-    DH_params.row(2) = Eigen::Map<RowVecxd>(a.data(), DOF);
-    DH_params.row(3) = Eigen::Map<RowVecxd>(alpha.data(), DOF) / 180 * M_PI;
-    DH_params.row(4) = Eigen::Map<RowVecxd>(joint_types.data(), DOF);
+    DH_params.row(0) = Eigen::Map<RowVecx>(theta.data(), DOF) / 180 * M_PI;
+    DH_params.row(1) = Eigen::Map<RowVecx>(d.data(), DOF);
+    DH_params.row(2) = Eigen::Map<RowVecx>(a.data(), DOF);
+    DH_params.row(3) = Eigen::Map<RowVecx>(alpha.data(), DOF) / 180 * M_PI;
+    DH_params.row(4) = Eigen::Map<RowVecx>(joint_types.data(), DOF);
 
     // Joint limits
-    std::vector<double> min_joint_position = data["joint_limits"]["min_joint_position"];
-    std::vector<double> max_joint_position = data["joint_limits"]["max_joint_position"];
-    std::vector<double> min_joint_velocities = data["joint_limits"]["min_joint_velocities"];
-    std::vector<double> max_joint_velocities = data["joint_limits"]["max_joint_velocities"];
+    std::vector<scalar_t> min_joint_position = data["joint_limits"]["min_joint_position"];
+    std::vector<scalar_t> max_joint_position = data["joint_limits"]["max_joint_position"];
+    std::vector<scalar_t> min_joint_velocities = data["joint_limits"]["min_joint_velocities"];
+    std::vector<scalar_t> max_joint_velocities = data["joint_limits"]["max_joint_velocities"];
 
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 min_joint_position", "DoF",min_joint_position.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 max_joint_position", "DoF",max_joint_position.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 min_joint_velocities", "DoF",min_joint_velocities.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecxd& joint_positions) arg0 max_joint_velocities", "DoF",max_joint_velocities.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 min_joint_position", "DoF",min_joint_position.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 max_joint_position", "DoF",max_joint_position.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 min_joint_velocities", "DoF",min_joint_velocities.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 max_joint_velocities", "DoF",max_joint_velocities.size(), DOF);
 
     Joint_limit_mat joint_limits;
     joint_limits.resize(4, DOF);
-    joint_limits.row(0) = Eigen::Map<RowVecxd>(min_joint_position.data(), DOF) / 180 * M_PI;
-    joint_limits.row(1) = Eigen::Map<RowVecxd>(max_joint_position.data(), DOF) / 180 * M_PI;
-    joint_limits.row(2) = Eigen::Map<RowVecxd>(min_joint_velocities.data(), DOF) / 180 * M_PI;
-    joint_limits.row(3) = Eigen::Map<RowVecxd>(max_joint_velocities.data(), DOF) / 180 * M_PI;
+    joint_limits.row(0) = Eigen::Map<RowVecx>(min_joint_position.data(), DOF) / 180 * M_PI;
+    joint_limits.row(1) = Eigen::Map<RowVecx>(max_joint_position.data(), DOF) / 180 * M_PI;
+    joint_limits.row(2) = Eigen::Map<RowVecx>(min_joint_velocities.data(), DOF) / 180 * M_PI;
+    joint_limits.row(3) = Eigen::Map<RowVecx>(max_joint_velocities.data(), DOF) / 180 * M_PI;
 
     _construct(DH_params, joint_limits, joint_positions);
 }
@@ -246,33 +246,34 @@ void SerialManipulator::set_effector(const Pose& effector) noexcept {
 void SerialManipulator::update(const Pose& desired_pose) {
     USING_NAMESPACE_QPOASES;
 
-    const Matxd& r_rd_jacobian = desired_pose.rotation().haminus() * C4_ * r_jacobian_;
-    const Matxd& Ht = t_jacobian_.transpose() * t_jacobian_;
-    const Matxd& Hr = r_rd_jacobian.transpose() * r_rd_jacobian;
-    const Vecxd& damping_vec = Vecxd::Ones(DoF()) * cfg_.joint_damping;
-    const Matxd& Hj = damping_vec.asDiagonal();
-    const Matxd& H = cfg_.translation_priority * Ht + (1-cfg_.translation_priority) * Hr + Hj;
+    const Matx& r_rd_jacobian = desired_pose.rotation().haminus() * C4_ * r_jacobian_;
+    const Matx& Ht = t_jacobian_.transpose() * t_jacobian_;
+    const Matx& Hr = r_rd_jacobian.transpose() * r_rd_jacobian;
+    const Vecx& damping_vec = Vecx::Ones(DoF()) * cfg_.joint_damping;
+    const Matx& Hj = damping_vec.asDiagonal();
+    const Matx& H = cfg_.translation_priority * Ht + (1-cfg_.translation_priority) * Hr + Hj;
 
-    const Vecxd& vec_et = (end_pose_.translation() - desired_pose.translation()).vec4();
-    const Vecxd& vec_er = __closest_invariant_rotation_error(end_pose_.rotation(), desired_pose.rotation());
-    const Vecxd& ct = cfg_.error_gain * vec_et.transpose() * t_jacobian_;
-    const Vecxd& cr = cfg_.error_gain * vec_er.transpose() * r_rd_jacobian;
-    const Vecxd& g = cfg_.translation_priority * ct + (1-cfg_.translation_priority) * cr;
-    const Matxd& constraint = Vecxd::Ones(DoF()).asDiagonal();
+    const Vecx& vec_et = (end_pose_.translation() - desired_pose.translation()).vec4();
+    const Vecx& vec_er = __closest_invariant_rotation_error(end_pose_.rotation(), desired_pose.rotation());
+    const Vecx& ct = cfg_.error_gain * vec_et.transpose() * t_jacobian_;
+    const Vecx& cr = cfg_.error_gain * vec_er.transpose() * r_rd_jacobian;
+    const Vecx& g = cfg_.translation_priority * ct + (1-cfg_.translation_priority) * cr;
+    const Matx& constraint = Vecx::Ones(DoF()).asDiagonal();
 
-    SQProblem qp(DoF(), 0);
-    Options options;
+    static SQProblem qp(DoF(), 0);
+    static Options options;
+    static int_t nWSR = 500;
+
     options.printLevel = PL_LOW;
     qp.setOptions(options);
 
-    int_t nWSR = 500;
-    const double* H_raw = H.data();
-    const double* g_raw = g.data();
-    const double* A_raw = constraint.data();
-    const double* lb_raw = min_joint_velocities().data();
-    const double* ub_raw = max_joint_velocities().data();
+    const scalar_t* H_raw = H.data();
+    const scalar_t* g_raw = g.data();
+    const scalar_t* A_raw = constraint.data();
+    const scalar_t* lb_raw = min_joint_velocities().data();
+    const scalar_t* ub_raw = max_joint_velocities().data();
 
-    bool first_time{true};
+    bool first_time(true);
     if (first_time){
         auto nWSR_in_use = nWSR;
         returnValue status = qp.init(H_raw, g_raw, nullptr, nullptr, nullptr, nullptr, nullptr, nWSR_in_use); 
@@ -290,48 +291,59 @@ void SerialManipulator::update(const Pose& desired_pose) {
     }
     real_t xOpt[DoF()];
     qp.getPrimalSolution(xOpt);
-    Eigen::Map<Vecxd> u(xOpt, DoF());
+    Eigen::Map<Vecx> u(xOpt, DoF());
 
     // update joint positions
     joint_positions_ += u * cfg_.sampling_time_sec;
     _update_kinematics();
 }
 
-void SerialManipulator::set_joint_positions(const Vecxd& joint_positions) {
-    __check_size_equality("update_joint_positions(const Vecxd& joint_positions)", "DoF", joint_positions.size(), DoF());
+void SerialManipulator::set_joint_positions(const Vecx& joint_positions) {
+    __check_size_equality("update_joint_positions(const Vecx& joint_positions)", "DoF", joint_positions.size(), DoF());
 
     joint_positions_ = joint_positions;
 
     _update_kinematics();
 }
 
-Vecxd SerialManipulator::min_joint_positions() const noexcept {
-    Vecxd res(DoF());
-    for (int i = 0; i < DoF(); ++i) {
+Pose SerialManipulator::fkm(size_t index) const{
+    if (index > DoF() || index < 1){
+        throw std::runtime_error("SerialManipulator::fkm(size_t index) invalid arg0 " + std::to_string(index) + ", should be within [ 1, " + std::to_string(DoF()) + " ].\n" );
+    }
+    if (index == 1) 
+        return base_;
+    else
+        return base_ * joint_poses_[index-2];
+}
+
+
+Vecx SerialManipulator::min_joint_positions() const noexcept {
+    Vecx res(DoF());
+    for (size_t i = 0; i < DoF(); ++i) {
         res[i] = joints_[i]->min_position();
     }
     return res;
 }
 
-Vecxd SerialManipulator::max_joint_positions() const noexcept {
-    Vecxd res(DoF());
-    for (int i = 0; i < DoF(); ++i) {
+Vecx SerialManipulator::max_joint_positions() const noexcept {
+    Vecx res(DoF());
+    for (size_t i = 0; i < DoF(); ++i) {
         res[i] = joints_[i]->max_position();
     }
     return res;
 }
 
-Vecxd SerialManipulator::min_joint_velocities() const noexcept {
-    Vecxd res(DoF());
-    for (int i = 0; i < DoF(); ++i) {
+Vecx SerialManipulator::min_joint_velocities() const noexcept {
+    Vecx res(DoF());
+    for (size_t i = 0; i < DoF(); ++i) {
         res[i] = joints_[i]->min_velocitiy();
     }
     return res;
 }
 
-Vecxd SerialManipulator::max_joint_velocities() const noexcept {
-    Vecxd res(DoF());
-    for (int i = 0; i < DoF(); ++i) {
+Vecx SerialManipulator::max_joint_velocities() const noexcept {
+    Vecx res(DoF());
+    for (size_t i = 0; i < DoF(); ++i) {
         res[i] = joints_[i]->max_velocitiy();
     }
     return res;
@@ -340,14 +352,12 @@ Vecxd SerialManipulator::max_joint_velocities() const noexcept {
 void SerialManipulator::_update_kinematics() {
     // Manually calculate the first joint pose and the first col of the pose jacobian
     joint_poses_[0] = joints_[0]->fkm(joint_positions_[0]);
-    const Vec8d& pose_jacobian_0 = (joint_poses_[0].conj() * joint_poses_.back()).haminus() * joints_[0]->pose_jacobian(joint_positions_[0]);
-    pose_jacobian_.col(0) = pose_jacobian_0;
+    pose_jacobian_.col(0) = (joint_poses_[0].conj() * joint_poses_.back()).haminus() * joints_[0]->pose_jacobian(joint_positions_[0]);
 
     // Iterately calculate the following joint poses and the last cols of the pose jacobian
-    for (int i=1; i<DoF(); ++i){
+    for (size_t i=1; i<DoF(); ++i){
         joint_poses_[i] = joint_poses_[i-1] * joints_[i]->fkm(joint_positions_[i]);
-        const Vec8d& pose_jacobian_i = (joint_poses_[i].conj() * joint_poses_.back()).haminus() * joint_poses_[i-1].hamiplus() * joints_[i]->pose_jacobian(joint_positions_[i]);
-        pose_jacobian_.col(i) = pose_jacobian_i;
+        pose_jacobian_.col(i) = (joint_poses_[i].conj() * joint_poses_.back()).haminus() * joint_poses_[i-1].hamiplus() * joints_[i]->pose_jacobian(joint_positions_[i]);
     }
     // Get the final pose and jacobians
     end_pose_ = base_ * joint_poses_.back() * effector_;
@@ -356,9 +366,9 @@ void SerialManipulator::_update_kinematics() {
     t_jacobian_ = 2 * end_pose_.rotation().conj().haminus() * pose_jacobian_.block(4,0,4,DoF()) + 2 * end_pose_.dual().hamiplus() * C4_ * r_jacobian_;
 }
 
-void SerialManipulator::_construct(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecxd& joint_positions){
-
-    int DOF = DH_params.cols();
+void SerialManipulator::_construct(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions){
+    
+    size_t DOF = DH_params.cols();
 
     joint_poses_.resize(DOF);
     pose_jacobian_.resize(8, DOF);
@@ -366,13 +376,13 @@ void SerialManipulator::_construct(const DH_mat& DH_params, const Joint_limit_ma
     t_jacobian_.resize(4, DOF);
 
     // instantiate remaining joints
-    for (int i=0; i<DOF; ++i){
+    for (size_t i=0; i<DOF; ++i){
         if (DH_params(4, i) == 0){
             joints_.push_back(std::make_unique<RevoluteJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i)));
         } else if (DH_params(4, i) == 1){
             joints_.push_back(std::make_unique<PrismaticJoint>(DH_params.block<4,1>(0,i), joint_limits.block<4,1>(0,i)));
         } else {
-            throw std::runtime_error("SerialManipulator(const Matxd& DH_params, const Matxd& joint_limits, const Vecxd& joint_positions) arg0 5-th row DH_params[4, " + std::to_string(i) + "] = " + std::to_string(DH_params(4, i)) + ", this row should consist only of 0 or 1.(0: Revolute joint, 1: Prismatic joint)\n");
+            throw std::runtime_error("SerialManipulator(const Matx& DH_params, const Matx& joint_limits, const Vecx& joint_positions) arg0 5-th row DH_params[4, " + std::to_string(i) + "] = " + std::to_string(DH_params(4, i)) + ", this row should consist only of 0 or 1.(0: Revolute joint, 1: Prismatic joint)\n");
         }
     }
 
