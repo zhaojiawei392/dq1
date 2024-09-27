@@ -1,3 +1,27 @@
+/** 
+ *     This file is part of dq1.
+ *  
+ *     dq1 is free software: you can redistribute it and/or modify 
+ *     it under the terms of the GNU General Public License as published 
+ *     by the Free Software Foundation, either version 3 of the License, 
+ *     or (at your option) any later version.
+ *  
+ *     dq1 is distributed in the hope that it will be useful, 
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ *     See the GNU General Public License for more details.
+ *  
+ *     You should have received a copy of the GNU General Public License
+ *     along with dq1. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ *     \file include/Modeling.hpp
+ *	   \author Jiawei ZHAO
+ *	   \version 1.0
+ *	   \date 2023-2024
+ */
+
 #pragma once
 #include <memory>
 #include <vector>
@@ -7,7 +31,7 @@ namespace dq1
 {
 namespace kinematics
 {
-#include "_Internal.hpp"
+
 
 class Joint {
 protected:
@@ -61,8 +85,6 @@ struct SerialManipulatorConfig{
     scalar_t joint_damping{0.0001};
 };
 
-using DH_mat = Mat<5, -1>;
-using Joint_limit_mat = Mat<4, -1>;
 
 class SerialManipulator {
 protected:
@@ -73,12 +95,11 @@ protected:
     Pose effector_;
     Pose end_pose_;
     std::vector<Pose> joint_poses_; 
-    Pose_jcb_t pose_jacobian_;
-    Rot_jcb_t r_jacobian_;
-    Tran_jcb_t t_jacobian_;
+    Pose_jcb pose_jacobian_;
+    Rot_jcb r_jacobian_;
+    Tran_jcb t_jacobian_;
 public:
     SerialManipulator() = delete;
-    SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions);
     SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions);
     virtual ~SerialManipulator() = default;
 
