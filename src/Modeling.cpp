@@ -1,3 +1,27 @@
+/** 
+ *     This file is part of dq1.
+ *  
+ *     dq1 is free software: you can redistribute it and/or modify 
+ *     it under the terms of the GNU General Public License as published 
+ *     by the Free Software Foundation, either version 3 of the License, 
+ *     or (at your option) any later version.
+ *  
+ *     dq1 is distributed in the hope that it will be useful, 
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ *     See the GNU General Public License for more details.
+ *  
+ *     You should have received a copy of the GNU General Public License
+ *     along with dq1. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ *     \file include/Modeling.hpp
+ *	   \author Jiawei ZHAO
+ *	   \version 1.0
+ *	   \date 2023-2024
+ */
+
 #include "Modeling.hpp"
 #include <stdexcept>
 #include <iostream>
@@ -167,15 +191,6 @@ Vec8 PrismaticJoint::pose_jacobian(const scalar_t position) const { // Intention
 // ***********************************************************************************************************************
 
 
-SerialManipulator::SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions) {
-    size_t DOF = DH_params.cols();
-    __check_size_inequality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions) arg0 cols", "DoF", DOF, 0);
-    __check_size_equality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions) arg1 cols", "DoF",joint_limits.cols(), DOF);
-    __check_size_equality("SerialManipulator(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions) arg2", "DoF",joint_positions.size(), DOF);
-
-    _construct(DH_params, joint_limits, joint_positions);
-}
-
 SerialManipulator::SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions){
 
     std::ifstream json_file(params_file_path);
@@ -252,13 +267,19 @@ void SerialManipulator::update(const Pose& desired_pose) {
     const Vecx& damping_vec = Vecx::Ones(DoF()) * cfg_.joint_damping;
     const Matx& Hj = damping_vec.asDiagonal();
     const Matx& H = cfg_.translation_priority * Ht + (1-cfg_.translation_priority) * Hr + Hj;
+    // the final data type must be of double, because the solver only accept double
+    const Matxd Hd = H.cast<double>();
 
     const Vecx& vec_et = (end_pose_.translation() - desired_pose.translation()).vec4();
     const Vecx& vec_er = __closest_invariant_rotation_error(end_pose_.rotation(), desired_pose.rotation());
     const Vecx& ct = cfg_.error_gain * vec_et.transpose() * t_jacobian_;
     const Vecx& cr = cfg_.error_gain * vec_er.transpose() * r_rd_jacobian;
     const Vecx& g = cfg_.translation_priority * ct + (1-cfg_.translation_priority) * cr;
-    const Matx& constraint = Vecx::Ones(DoF()).asDiagonal();
+
+    // the final data type must be of double, because the solver only accept double
+    const Vecxd& gd = g.cast<double>();
+
+    const Matxd& constraint = Vecxd::Ones(DoF()).asDiagonal();
 
     static SQProblem qp(DoF(), 0);
     static Options options;
@@ -267,11 +288,15 @@ void SerialManipulator::update(const Pose& desired_pose) {
     options.printLevel = PL_LOW;
     qp.setOptions(options);
 
-    const scalar_t* H_raw = H.data();
-    const scalar_t* g_raw = g.data();
-    const scalar_t* A_raw = constraint.data();
-    const scalar_t* lb_raw = min_joint_velocities().data();
-    const scalar_t* ub_raw = max_joint_velocities().data();
+    const double* H_raw = Hd.data();
+    const double* g_raw = gd.data();
+    const double* A_raw = constraint.data();
+
+    const Vecxd min_joint_velocirties_double = min_joint_velocities().cast<double>();
+    const Vecxd max_joint_velocirties_double = max_joint_velocities().cast<double>();
+
+    const double* lb_raw = min_joint_velocirties_double.data();
+    const double* ub_raw = max_joint_velocirties_double.data();
 
     bool first_time(true);
     if (first_time){
@@ -287,14 +312,13 @@ void SerialManipulator::update(const Pose& desired_pose) {
         if (status != SUCCESSFUL_RETURN){
             throw std::runtime_error("Failed to solve QP problem.\n");
         }
-
     }
-    real_t xOpt[DoF()];
+    double xOpt[DoF()];
     qp.getPrimalSolution(xOpt);
-    Eigen::Map<Vecx> u(xOpt, DoF());
+    Eigen::Map<Vecxd> u(xOpt, DoF());
 
     // update joint positions
-    joint_positions_ += u * cfg_.sampling_time_sec;
+    joint_positions_ += u.cast<scalar_t>() * cfg_.sampling_time_sec;
     _update_kinematics();
 }
 
