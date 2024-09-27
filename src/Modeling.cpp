@@ -16,7 +16,7 @@
  */
 
 /**
- *     \file include/Modeling.hpp
+ *     \file src/Modeling.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024

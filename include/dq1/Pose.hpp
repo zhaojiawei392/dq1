@@ -16,7 +16,7 @@
  */
 
 /**
- *     \file include/Modeling.hpp
+ *     \file include/dq1/Pose.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024

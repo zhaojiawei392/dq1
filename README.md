@@ -16,7 +16,7 @@
 
 
 
-    Filename dq1Config.cmake.in
+    Filename README.md
     Author Jiawei ZHAO
 	Version 1.0
 	Date 2023-2024
