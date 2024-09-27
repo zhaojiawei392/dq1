@@ -1,3 +1,27 @@
+ ## 
+ ##    This file is part of dq1.
+ ## 
+ ##    dq1 is free software: you can redistribute it and/or modify 
+ ##    it under the terms of the GNU General Public License as published 
+ ##    by the Free Software Foundation, either version 3 of the License, 
+ ##    or (at your option) any later version.
+ ## 
+ ##    dq1 is distributed in the hope that it will be useful, 
+ ##    but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ ##    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ ##    See the GNU General Public License for more details.
+ ## 
+ ##    You should have received a copy of the GNU General Public License
+ ##    along with dq1. If not, see <https://www.gnu.org/licenses/>.
+ ##
+
+ ##
+ ##    Filename CmakeLists.txt
+ ##	   Author Jiawei ZHAO
+ ##	   Version 1.0
+ ##	   Date 2023-2024
+ ##
+
 cmake_minimum_required(VERSION 3.28)
 
 # set the project name and version
@@ -31,7 +55,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
-set(dq1_BUILD_EXAMPLES OFF CACHE BOOL "Build examples for dq1" FORCE)
+set(dq1_BUILD_EXAMPLES ON CACHE BOOL "Build examples for dq1" FORCE)
 
 if(APPLE)
   set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
@@ -39,8 +63,9 @@ elseif(UNIX)
   set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 endif()
 
-# add the MathFunctions library
 add_subdirectory(src)
+add_subdirectory(examples)
+add_subdirectory(tests)
 
 # enable testing
 enable_testing()
