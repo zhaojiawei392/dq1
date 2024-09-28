@@ -24,6 +24,7 @@
 
 
 #include <iostream>
+#include <chrono>
 #include "../include/dq1.hpp"
 
 namespace example{
@@ -81,16 +82,65 @@ using namespace dq1;
 
 }
 
-void test2(){
+void construct1(){
 
+    dq1::Vec4f vec = {1,2,3,4};
+    std::vector<dq1::Vec4f> vec_vec;
+    for (size_t i=0; i<10000000; i++){
+        vec_vec.emplace_back(dq1::Vec4f(vec));
+    }
+    std::vector<dq1::Quat> q_vec;
+    
+    auto start0 = std::chrono::high_resolution_clock::now();
+
+    for (size_t i=0; i<10000000; i++){
+        q_vec.emplace_back(dq1::Quat(std::move(vec_vec[i])));
+    }
+    auto end0 = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double, std::milli> elapsed0 = end0 - start0;
+
+    std::cout << "move Elapsed time: " << elapsed0.count() <<" ms\n";
+
+    auto start1 = std::chrono::high_resolution_clock::now();
+
+    for (size_t i=0; i<10000000; i++){
+        q_vec.emplace_back(dq1::Quat(vec_vec[i]));
+    }
+    auto end1 = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double, std::milli> elapsed1 = end1 - start1;
+
+    std::cout << "reference Elapsed time: " << elapsed1.count() <<" ms\n";
+
+    // reference > move > copy  in arguments passing
 }
+
+void construct2(){
+
+    dq1::Vec3f vec = {0,0,1};
+
+    std::vector<dq1::Quat> q_vec;
+    
+    auto start0 = std::chrono::high_resolution_clock::now();
+
+    for (size_t i=0; i<10000000; i++){
+        q_vec.emplace_back(dq1::Quat(vec, 0.5, 1));
+    }
+    auto end0 = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double, std::milli> elapsed0 = end0 - start0;
+
+    std::cout << "reference Elapsed time: " << elapsed0.count() <<" ms\n";
+
+    // reference > move > copy  in arguments passing
+}
+
 }
 
 int main()
 {   
-
-    example::display();
-
+    example::construct2();
 
 }
 

@@ -22,7 +22,7 @@
  ##	   Date 2023-2024
  ##
 
-add_library(dq1 SHARED Modeling.cpp)
+add_library(dq1 SHARED Kinematics.cpp)
 
 set_property(TARGET dq1 PROPERTY VERSION ${PACKAGE_VERSION})
 set_property(TARGET dq1 PROPERTY SOVERSION ${PACKAGE_SO_VERSION})

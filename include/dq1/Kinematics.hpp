@@ -16,7 +16,7 @@
  */
 
 /**
- *     \file include/Modeling.hpp
+ *     \file include/Kinematics.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024
@@ -26,16 +26,19 @@
 #include <memory>
 #include <vector>
 #include "Pose.hpp"
+#include "Macro.hpp"
 
 namespace dq1
 {
+
 namespace kinematics
 {
 
+using namespace Macro;
 
 class Joint {
 protected:
-    Vec4 limits_; // {min position, max position, min velocitiy, max velocitiy}
+    Vec4 _limits; // {min position, max position, min velocitiy, max velocitiy}
     void _check_limits();
     void _make_position_within_limits(scalar_t& position);
 
@@ -44,38 +47,38 @@ public:
     Joint(const Vec4 motion_limits);
     virtual ~Joint() = default;
 
-    virtual Pose fkm(const scalar_t position) const = 0;
-    virtual Vec8 pose_jacobian(const scalar_t position) const = 0;
+    virtual Pos fkm(const scalar_t position) const = 0;
+    virtual Vec8 end_pose_jacobian(const scalar_t position) const = 0;
 
-    inline Vec4 motion_limits() const noexcept {return limits_;};
-    inline scalar_t min_position() const noexcept {return limits_[0];};
-    inline scalar_t max_position() const noexcept {return limits_[1];};
-    inline scalar_t min_velocitiy() const noexcept {return limits_[2];};
-    inline scalar_t max_velocitiy() const noexcept {return limits_[3];};
+    inline Vec4 motion_limits() const noexcept {return _limits;};
+    inline scalar_t min_position() const noexcept {return _limits[0];};
+    inline scalar_t max_position() const noexcept {return _limits[1];};
+    inline scalar_t min_velocitiy() const noexcept {return _limits[2];};
+    inline scalar_t max_velocitiy() const noexcept {return _limits[3];};
 };
 
 class RevoluteJoint : public Joint {
 protected:
-    Vec4 DH_params_; 
+    Vec4 _DH_params; 
 public:
     RevoluteJoint() = delete;
     RevoluteJoint(const Vec4 DH_parameters, const Vec4 motion_limits);
     virtual ~RevoluteJoint() = default;
     
-    virtual Pose fkm(const scalar_t position) const override;
-    virtual Vec8 pose_jacobian(const scalar_t position) const override;
+    virtual Pos fkm(const scalar_t position) const override;
+    virtual Vec8 end_pose_jacobian(const scalar_t position) const override;
 };
 
 class PrismaticJoint : public Joint {
 protected:
-    Vec4 DH_params_; 
+    Vec4 _DH_params; 
 public:
     PrismaticJoint() = delete;
     PrismaticJoint(const Vec4 DH_parameters, const Vec4 motion_limits);
     virtual ~PrismaticJoint() = default;
 
-    virtual Pose fkm(const scalar_t position) const override;
-    virtual Vec8 pose_jacobian(const scalar_t position=0) const override;
+    virtual Pos fkm(const scalar_t position) const override;
+    virtual Vec8 end_pose_jacobian(const scalar_t position=0) const override;
 };
 
 struct SerialManipulatorConfig{
@@ -85,44 +88,46 @@ struct SerialManipulatorConfig{
     scalar_t joint_damping{0.0001};
 };
 
+struct SerialManipulatorData{
+    Vecx joint_positions;
+    std::vector<Pos> joint_poses; // {joint1->joint2, joint2->joint3, joint3->joint4, ... , joint?->end}
+    Pos base;
+    Pos effector;
+    Pos end_pose;
+    PoseJacobian end_pose_jacobian;
+    RotationJacobian end_rotation_jacobian;
+    TranslationJacobian end_translation_jacobian;
+};
+
 
 class SerialManipulator {
 protected:
-    SerialManipulatorConfig cfg_;
-    std::vector<std::unique_ptr<Joint>> joints_;
-    Vecx joint_positions_;
-    Pose base_;
-    Pose effector_;
-    Pose end_pose_;
-    std::vector<Pose> joint_poses_; 
-    Pose_jcb pose_jacobian_;
-    Rot_jcb r_jacobian_;
-    Tran_jcb t_jacobian_;
+    SerialManipulatorConfig _cfg;
+    std::vector<std::unique_ptr<Joint>> _joints;
+    SerialManipulatorData _data;
 public:
     SerialManipulator() = delete;
     SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions);
     virtual ~SerialManipulator() = default;
 
-    void set_base(const Pose& base) noexcept;
-    void set_effector(const Pose& effector) noexcept;
-    void update(const Pose& desired_pose);
+    void set_base(const Pos& base) noexcept;
+    void set_effector(const Pos& effector) noexcept;
+    void update(const Pos& desired_pose);
 
-    void set_joint_positions(const Vecx& joint_positions);
-    
     // query
-    Pose fkm(size_t index) const;
-    inline Vecx joint_positions() const noexcept {return joint_positions_;}
+    inline Vecx joint_positions() const noexcept {return _data.joint_positions;}
     Vecx min_joint_positions() const noexcept;
     Vecx max_joint_positions() const noexcept;
     Vecx min_joint_velocities() const noexcept;
     Vecx max_joint_velocities() const noexcept;
-    inline Pose end_pose() const noexcept {return end_pose_;}
-    inline size_t DoF() const noexcept {return joints_.size();}
-    inline SerialManipulatorConfig& config() noexcept {return cfg_;}
+    inline Pos end_pose() const noexcept {return _data.end_pose;}
+    inline size_t DoF() const noexcept {return _joints.size();}
+    inline SerialManipulatorConfig& config() noexcept {return _cfg;}
+    inline const SerialManipulatorData& query_data() const noexcept {return _data;}
 
 private:
     void _update_kinematics();
-    void _construct(const DH_mat& DH_params, const Joint_limit_mat& joint_limits, const Vecx& joint_positions);
+    void _construct(const DHParam& DH_params, const JointLimits& joint_limits, const Vecx& joint_positions);
 };
 
 } // namespace kinematics
