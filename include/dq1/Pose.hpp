@@ -91,7 +91,15 @@ using Vec4=Vec4_t<scalar_t>;
 using Vec6=Vec6_t<scalar_t>;
 using Vec8=Vec8_t<scalar_t>;
 using Vecx=Vecx_t<scalar_t>;
+using Vec3f=Vec3_t<float>;
+using Vec4f=Vec4_t<float>;
+using Vec6f=Vec6_t<float>;
+using Vec8f=Vec8_t<float>;
 using Vecxf=Vecx_t<float>;
+using Vec3d=Vec3_t<double>;
+using Vec4d=Vec4_t<double>;
+using Vec6d=Vec6_t<double>;
+using Vec8d=Vec8_t<double>;
 using Vecxd=Vecx_t<double>;
 
 using RowVec3=RowVec3_t<scalar_t>;
@@ -99,7 +107,15 @@ using RowVec4=RowVec4_t<scalar_t>;
 using RowVec6=RowVec6_t<scalar_t>;
 using RowVec8=RowVec8_t<scalar_t>;
 using RowVecx=RowVecx_t<scalar_t>;
+using RowVec3f=RowVec3_t<float>;
+using RowVec4f=RowVec4_t<float>;
+using RowVec6f=RowVec6_t<float>;
+using RowVec8f=RowVec8_t<float>;
 using RowVecxf=RowVecx_t<float>;
+using RowVec3d=RowVec3_t<double>;
+using RowVec4d=RowVec4_t<double>;
+using RowVec6d=RowVec6_t<double>;
+using RowVec8d=RowVec8_t<double>;
 using RowVecxd=RowVecx_t<double>;
 
 using Mat3=Mat3_t<scalar_t>;
@@ -107,7 +123,15 @@ using Mat4=Mat4_t<scalar_t>;
 using Mat6=Mat6_t<scalar_t>;
 using Mat8=Mat8_t<scalar_t>;
 using Matx=Matx_t<scalar_t>;
+using Mat3f=Mat3_t<float>;
+using Mat4f=Mat4_t<float>;
+using Mat6f=Mat6_t<float>;
+using Mat8f=Mat8_t<float>;
 using Matxf=Matx_t<float>;
+using Mat3d=Mat3_t<double>;
+using Mat4d=Mat4_t<double>;
+using Mat6d=Mat6_t<double>;
+using Mat8d=Mat8_t<double>;
 using Matxd=Matx_t<double>;
 
 template<typename qScalar_>
@@ -136,11 +160,11 @@ public:
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
              Quaternion();
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    explicit Quaternion(Vec4_t<qScalar_> vec4);
+    explicit Quaternion(const Vec4_t<qScalar_>& vec4);
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    Quaternion(const qScalar_ w, const qScalar_ x=0, const qScalar_ y=0, const qScalar_ z=0);
+             Quaternion(const qScalar_ w, const qScalar_ x=0, const qScalar_ y=0, const qScalar_ z=0);
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    Quaternion(const Vec3_t<qScalar_> rotation_axis_vec3, const qScalar_ rotation_angle, const qScalar_ norm=1);
+             Quaternion(const Vec3_t<qScalar_> rotation_axis_vec3, const qScalar_ rotation_angle, const qScalar_ norm=1);
 
     // mutable operators
 
@@ -295,7 +319,7 @@ public:
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
                     UnitQuaternion();
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-           explicit UnitQuaternion(Vec4_t<qScalar_> vec4);
+           explicit UnitQuaternion(const Vec4_t<qScalar_>& vec4);
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
            explicit UnitQuaternion(const qScalar_ w, const qScalar_ x=0, const qScalar_ y=0, const qScalar_ z=0);
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -465,7 +489,7 @@ Quaternion<qScalar_>::Quaternion()
 
 template<typename qScalar_>
 template<typename T, typename>
-Quaternion<qScalar_>::Quaternion(Vec4_t<qScalar_> vec4): vals_(vec4){
+Quaternion<qScalar_>::Quaternion(const Vec4_t<qScalar_>& vec4): vals_(vec4){
 
 }
 
@@ -746,7 +770,7 @@ UnitQuaternion<qScalar_>::UnitQuaternion() : Quaternion<qScalar_>(1) {
 
 template<typename qScalar_>
 template<typename T, typename>
-UnitQuaternion<qScalar_>::UnitQuaternion(Vec4_t<qScalar_> vec4) : Quaternion<qScalar_>(vec4) {
+UnitQuaternion<qScalar_>::UnitQuaternion(const Vec4_t<qScalar_>& vec4) : Quaternion<qScalar_>(vec4) {
     _norm_should_be_one("UnitQuaternion(const Vec4_t<qScalar_>& vec4)", *this);
 }
 
