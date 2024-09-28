@@ -26,8 +26,6 @@
 #include <eigen3/Eigen/Dense>
 #include <iostream>
 #include <iomanip>
-#include <cmath>
-#include <type_traits>
 
 namespace dq1
 {
