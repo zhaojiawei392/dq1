@@ -25,3 +25,36 @@
 #pragma once
 #include "Pose.hpp"
 #include "Macro.hpp"
+
+namespace Geometry
+{
+using namespace dq1::Macro;
+
+class Geo{
+protected:
+
+public:
+
+};
+
+class Point: public Geo{
+protected:
+
+};
+
+class Line: public Geo{
+
+};
+
+class LineSegment: public Geo{
+
+};
+
+class Plane: public Geo{
+
+};
+
+class PlaneSegment: public Geo{
+    
+};
+}

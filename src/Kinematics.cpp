@@ -92,7 +92,7 @@ RevoluteJoint::RevoluteJoint(const Vec4 DH_parameters, const Vec4 motion_limits)
     : Joint(motion_limits), _DH_params(DH_parameters) {
 }
 
-Pos RevoluteJoint::fkm(const scalar_t position) const {
+Pose RevoluteJoint::fkm(const scalar_t position) const {
     
     scalar_t theta_real = cos( 0.5 * (_DH_params[0] + position) );
     scalar_t theta_im = sin( 0.5 * (_DH_params[0] + position) );
@@ -100,7 +100,7 @@ Pos RevoluteJoint::fkm(const scalar_t position) const {
     scalar_t alpha_im = sin( 0.5 * _DH_params[3] );
     scalar_t d = _DH_params[1];
     scalar_t a = _DH_params[2];
-    return Pos{
+    return Pose{
         theta_real * alpha_real,
         theta_real * alpha_im,
         theta_im * alpha_im,
@@ -143,14 +143,14 @@ Vec8 RevoluteJoint::end_pose_jacobian(const scalar_t position) const {
 PrismaticJoint::PrismaticJoint(const Vec4 DH_parameters, const Vec4 motion_limits)
     : Joint(motion_limits), _DH_params(DH_parameters) {}
 
-Pos PrismaticJoint::fkm(const scalar_t position) const {
+Pose PrismaticJoint::fkm(const scalar_t position) const {
     scalar_t theta_real = cos( 0.5 * _DH_params[0] );
     scalar_t theta_im = sin( 0.5 * _DH_params[0] );
     scalar_t alpha_real = cos( 0.5 * _DH_params[3] );
     scalar_t alpha_im = sin( 0.5 * _DH_params[3] );
     scalar_t d = _DH_params[1] + position;
     scalar_t a = _DH_params[2];
-    return Pos{
+    return Pose{
         theta_real * alpha_real,
         theta_real * alpha_im,
         theta_im * alpha_im,
@@ -240,8 +240,15 @@ SerialManipulator::SerialManipulator(const std::string& params_file_path, const 
     __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 min_joint_velocities", "DoF",min_joint_velocities.size(), DOF);
     __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 max_joint_velocities", "DoF",max_joint_velocities.size(), DOF);
 
+    // solver_config
+    _cfg.translation_priority = data["solver_config"]["translation_priority"];
+    _cfg.error_gain = data["solver_config"]["error_gain"];
+    _cfg.joint_damping = data["solver_config"]["joint_damping"];
+    _cfg.sampling_time_sec = data["solver_config"]["sampling_time_sec"];
+
     JointLimits joint_limits;
     joint_limits.resize(4, DOF);
+    // convert limits' unit to rad per loop from degree per second
     joint_limits.row(0) = Eigen::Map<RowVecx>(min_joint_position.data(), DOF) / 180 * M_PI;
     joint_limits.row(1) = Eigen::Map<RowVecx>(max_joint_position.data(), DOF) / 180 * M_PI;
     joint_limits.row(2) = Eigen::Map<RowVecx>(min_joint_velocities.data(), DOF) / 180 * M_PI;
@@ -250,15 +257,15 @@ SerialManipulator::SerialManipulator(const std::string& params_file_path, const 
     _construct(DH_params, joint_limits, joint_positions);
 }
 
-void SerialManipulator::set_base(const Pos& base) noexcept {
+void SerialManipulator::set_base(const Pose& base) noexcept {
     _data.base = base;
 }
 
-void SerialManipulator::set_effector(const Pos& effector) noexcept {
+void SerialManipulator::set_effector(const Pose& effector) noexcept {
     _data.effector = effector;
 }
 
-void SerialManipulator::update(const Pos& desired_pose) {
+void SerialManipulator::update(const Pose& desired_pose) {
     USING_NAMESPACE_QPOASES;
 
     const Matx& r_rd_jacobian = desired_pose.rotation().haminus() * C4_ * _data.end_rotation_jacobian;
@@ -275,40 +282,39 @@ void SerialManipulator::update(const Pos& desired_pose) {
     const Vecx& ct = _cfg.error_gain * vec_et.transpose() * _data.end_translation_jacobian;
     const Vecx& cr = _cfg.error_gain * vec_er.transpose() * r_rd_jacobian;
     const Vecx& g = _cfg.translation_priority * ct + (1-_cfg.translation_priority) * cr;
-
-    // the final data type must be of double, because the solver only accept double
     const Vecxd& gd = g.cast<double>();
 
     const Matxd& constraint = Vecxd::Ones(DoF()).asDiagonal();
-
-    static SQProblem qp(DoF(), 0);
-    static Options options;
-    static int_t nWSR = 500;
-
-    options.printLevel = PL_LOW;
-    qp.setOptions(options);
+    const Vecxd min_joint_positions_double = min_joint_positions().cast<double>();
+    const Vecxd max_joint_positions_double = max_joint_positions().cast<double>();
+    const Vecxd min_joint_velocirties_double = min_joint_velocities().cast<double>();
+    const Vecxd max_joint_velocirties_double = max_joint_velocities().cast<double>();
 
     const double* H_raw = Hd.data();
     const double* g_raw = gd.data();
     const double* A_raw = constraint.data();
-
-    const Vecxd min_joint_velocirties_double = min_joint_velocities().cast<double>();
-    const Vecxd max_joint_velocirties_double = max_joint_velocities().cast<double>();
-
     const double* lb_raw = min_joint_velocirties_double.data();
     const double* ub_raw = max_joint_velocirties_double.data();
+    const double* lb_A_raw = min_joint_positions_double.data();
+    const double* ub_A_raw = max_joint_positions_double.data();
+
+    static SQProblem qp(DoF(), 0);
+    static Options options;
+    static int_t nWSR = 500;
+    options.printLevel = PL_LOW;
+    qp.setOptions(options);
 
     bool first_time(true);
     if (first_time){
         auto nWSR_in_use = nWSR;
-        returnValue status = qp.init(H_raw, g_raw, nullptr, nullptr, nullptr, nullptr, nullptr, nWSR_in_use); 
+        returnValue status = qp.init(H_raw, g_raw, A_raw, lb_raw, ub_raw, lb_A_raw, ub_A_raw, nWSR_in_use); 
         if (status != SUCCESSFUL_RETURN){
             throw std::runtime_error("Failed to solve QP problem.\n");
         }
         first_time = false;
     }else{
         auto nWSR_in_use = nWSR;
-        returnValue status = qp.hotstart(H_raw, g_raw, nullptr, nullptr, nullptr, nullptr, nullptr, nWSR_in_use);
+        returnValue status = qp.hotstart(H_raw, g_raw, A_raw, lb_raw, ub_raw, lb_A_raw, ub_A_raw, nWSR_in_use);
         if (status != SUCCESSFUL_RETURN){
             throw std::runtime_error("Failed to solve QP problem.\n");
         }

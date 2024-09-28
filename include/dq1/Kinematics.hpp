@@ -47,7 +47,7 @@ public:
     Joint(const Vec4 motion_limits);
     virtual ~Joint() = default;
 
-    virtual Pos fkm(const scalar_t position) const = 0;
+    virtual Pose fkm(const scalar_t position) const = 0;
     virtual Vec8 end_pose_jacobian(const scalar_t position) const = 0;
 
     inline Vec4 motion_limits() const noexcept {return _limits;};
@@ -65,7 +65,7 @@ public:
     RevoluteJoint(const Vec4 DH_parameters, const Vec4 motion_limits);
     virtual ~RevoluteJoint() = default;
     
-    virtual Pos fkm(const scalar_t position) const override;
+    virtual Pose fkm(const scalar_t position) const override;
     virtual Vec8 end_pose_jacobian(const scalar_t position) const override;
 };
 
@@ -77,7 +77,7 @@ public:
     PrismaticJoint(const Vec4 DH_parameters, const Vec4 motion_limits);
     virtual ~PrismaticJoint() = default;
 
-    virtual Pos fkm(const scalar_t position) const override;
+    virtual Pose fkm(const scalar_t position) const override;
     virtual Vec8 end_pose_jacobian(const scalar_t position=0) const override;
 };
 
@@ -90,10 +90,10 @@ struct SerialManipulatorConfig{
 
 struct SerialManipulatorData{
     Vecx joint_positions;
-    std::vector<Pos> joint_poses; // {joint1->joint2, joint2->joint3, joint3->joint4, ... , joint?->end}
-    Pos base;
-    Pos effector;
-    Pos end_pose;
+    std::vector<Pose> joint_poses; // {joint1->joint2, joint2->joint3, joint3->joint4, ... , joint?->end}
+    Pose base;
+    Pose effector;
+    Pose end_pose;
     PoseJacobian end_pose_jacobian;
     RotationJacobian end_rotation_jacobian;
     TranslationJacobian end_translation_jacobian;
@@ -110,9 +110,9 @@ public:
     SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions);
     virtual ~SerialManipulator() = default;
 
-    void set_base(const Pos& base) noexcept;
-    void set_effector(const Pos& effector) noexcept;
-    void update(const Pos& desired_pose);
+    void set_base(const Pose& base) noexcept;
+    void set_effector(const Pose& effector) noexcept;
+    void update(const Pose& desired_pose);
 
     // query
     inline Vecx joint_positions() const noexcept {return _data.joint_positions;}
@@ -120,7 +120,7 @@ public:
     Vecx max_joint_positions() const noexcept;
     Vecx min_joint_velocities() const noexcept;
     Vecx max_joint_velocities() const noexcept;
-    inline Pos end_pose() const noexcept {return _data.end_pose;}
+    inline Pose end_pose() const noexcept {return _data.end_pose;}
     inline size_t DoF() const noexcept {return _joints.size();}
     inline SerialManipulatorConfig& config() noexcept {return _cfg;}
     inline const SerialManipulatorData& query_data() const noexcept {return _data;}

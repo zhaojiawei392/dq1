@@ -29,15 +29,7 @@
 
 namespace dq1
 {
-template <typename T>
-T square(const T& x) {
-    return x * x;
-}
 
-constexpr int PRINT_PRECISION = 18;
-constexpr double FLOAT_OMIT_THRESHOLD = 0.00000001;
-constexpr double FLOAT_ERROR_THRESHOLD = 0.0001;
-constexpr bool VERY_VERBOSE = false;
 
 // Template type alias
 using Eigen::VectorX;
@@ -64,6 +56,18 @@ using Matrix6 = Eigen::Matrix<Scalar_, 6, 6>;
 template<typename Scalar_>
 using Matrix8 = Eigen::Matrix<Scalar_, 8, 8>;
 
+namespace Template
+{
+
+template <typename T>
+T square(const T& x) {
+    return x * x;
+}
+
+constexpr int PRINT_PRECISION = 18;
+constexpr double FLOAT_OMIT_THRESHOLD = 0.00000001;
+constexpr double FLOAT_ERROR_THRESHOLD = 0.0001;
+constexpr bool VERY_VERBOSE = false;
 template<typename qScalar_>
 class Quaternion;
 template<typename qScalar_>
@@ -121,7 +125,7 @@ public:
     bool operator!=(const Quaternion& other) const noexcept; 
     operator std::string() const;
 
-    // service functions const
+    // Service functions const
 
     qScalar_ norm() const noexcept;
     qScalar_ rotation_angle() const noexcept;
@@ -138,7 +142,7 @@ public:
     Matrix4<qScalar_> hamiplus() const noexcept;
     Matrix4<qScalar_> haminus() const noexcept;
 
-    // "Get" const
+    // Query const
 
     std::string to_string() const;
     qScalar_ w() const noexcept;
@@ -191,7 +195,7 @@ public:
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     explicit Translation(const qScalar_ x, const qScalar_ y, const qScalar_ z);
 
-    Translation(const Quaternion<qScalar_>& q);
+    Translation(const Quaternion<qScalar_>& q); // implicitly convert a quaternion to a translation
     Translation(Quaternion<qScalar_>&& q);
     Translation& operator=(const Quaternion<qScalar_>& q);
     Translation& operator=(Quaternion<qScalar_>&& q);
@@ -257,7 +261,7 @@ public:
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
            explicit Rotation(const UnitAxis<qScalar_> rotation_axis, const qScalar_ rotation_angle);
 
-    Rotation(const Quaternion<qScalar_>& q);
+    Rotation(const Quaternion<qScalar_>& q); // implicitly convert a quaternion to a rotation
     Rotation(Quaternion<qScalar_>&& q);
     Rotation& operator=(const Quaternion<qScalar_>& q);
     Rotation& operator=(Quaternion<qScalar_>&& q);
@@ -306,7 +310,7 @@ public:
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     explicit UnitAxis(const qScalar_ x, const qScalar_ y, const qScalar_ z);
 
-    UnitAxis(const Quaternion<qScalar_>& q);
+    UnitAxis(const Quaternion<qScalar_>& q); // implicitly convert a quaternion to a UnitAxis
     UnitAxis(Quaternion<qScalar_>&& q);
     UnitAxis& operator=(const Quaternion<qScalar_>& q);
     UnitAxis& operator=(Quaternion<qScalar_>&& q);
@@ -332,7 +336,6 @@ public:
     UnitAxis& operator=(const UnitAxis& other)=default;
     UnitAxis& operator=(UnitAxis&& other)=default;
 };
-}
 
 
 
@@ -350,9 +353,6 @@ public:
 
 
 
-
-namespace dq1
-{
 
 // Friend Functions *************************************************************************
 
@@ -857,7 +857,6 @@ UnitAxis<qScalar_>& UnitAxis<qScalar_>::normalize(){
 
 
 
-}
 
 
 
@@ -870,33 +869,6 @@ UnitAxis<qScalar_>& UnitAxis<qScalar_>::normalize(){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-namespace dq1
-{
 
 template<typename qScalar_>
 class DualQuaternion{
@@ -1044,7 +1016,7 @@ public:
 
 };
 
-}
+
 
 
 
@@ -1059,9 +1031,6 @@ public:
 
 
 
-
-namespace dq1
-{
 
 // Friend functions
 
@@ -1394,4 +1363,6 @@ Pose<qScalar_>& Pose<qScalar_>::normalize() noexcept{
     this->normalize();
 }
     
-}
+}  // namespace Template
+
+}  // namespace dq1

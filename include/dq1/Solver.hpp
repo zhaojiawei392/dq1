@@ -25,3 +25,7 @@
 #pragma once
 #include <eigen3/Eigen/Dense>
 #include "Pose.hpp"
+
+namespace Solver
+{
+}

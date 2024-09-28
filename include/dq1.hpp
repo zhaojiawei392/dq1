@@ -26,4 +26,6 @@
 #include "dq1/Pose.hpp"
 #include "dq1/Kinematics.hpp"
 #include "dq1/Geometry.hpp"
+#include "dq1/Solver.hpp"
+#include "dq1/Macro.hpp"
 

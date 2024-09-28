@@ -26,6 +26,10 @@
 #include <eigen3/Eigen/Dense>
 #include "Pose.hpp"
 
+namespace dq1
+{
+
+
 namespace Macro
 {
 using scalar_t = float;
@@ -50,12 +54,12 @@ using Vecxd=Eigen::VectorXd;
 using RowVecxd=Eigen::RowVectorXd;
 using Matxd=Eigen::MatrixXd;
 
-using Quat = dq1::Quaternion<scalar_t>;
-using Rot = dq1::Rotation<scalar_t>;
-using Tran = dq1::Translation<scalar_t>;
-using UAxis = dq1::UnitAxis<scalar_t>;
-using DQ = dq1::DualQuaternion<scalar_t>;
-using Pos = dq1::Pose<scalar_t>;
+using Quat = dq1::Template::Quaternion<scalar_t>;
+using Rot = dq1::Template::Rotation<scalar_t>;
+using Tran = dq1::Template::Translation<scalar_t>;
+using UAxis = dq1::Template::UnitAxis<scalar_t>;
+using DQ = dq1::Template::DualQuaternion<scalar_t>;
+using Pose = dq1::Template::Pose<scalar_t>;
 
 using PoseJacobian = Eigen::Matrix<scalar_t, 8, -1>;
 using RotationJacobian = Eigen::Matrix<scalar_t, 4, -1>;
@@ -69,5 +73,7 @@ const UAxis k_(0,0,1);
 const Mat4 C4_ = (Mat4() << 1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,-1).finished();
 const Mat8 C8_ = (Mat8() << C4_, Mat4::Zero(), C4_, Mat4::Zero()).finished(); 
 
+
+}
 
 }
