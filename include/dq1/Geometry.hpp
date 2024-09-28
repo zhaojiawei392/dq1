@@ -16,16 +16,45 @@
  */
 
 /**
- *     \file include/dq1.hpp
+ *     \file include/Geometry.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024
  */
 
 #pragma once
-#include "dq1/Pose.hpp"
-#include "dq1/Kinematics.hpp"
-#include "dq1/Geometry.hpp"
-#include "dq1/Solver.hpp"
-#include "dq1/Macro.hpp"
+#include "Pose.hpp"
+#include "Macro.hpp"
 
+namespace Geometry
+{
+using namespace dq1::Macro;
+
+class Geo{
+protected:
+
+public:
+
+};
+
+class Point: public Geo{
+protected:
+
+};
+
+class Line: public Geo{
+
+};
+
+class LineSegment: public Geo{
+
+};
+
+class Plane: public Geo{
+
+};
+
+class PlaneSegment: public Geo{
+    
+};
+}

@@ -16,16 +16,20 @@
  */
 
 /**
- *     \file include/dq1.hpp
+ *     \file src/pyWarpper.cpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024
  */
 
-#pragma once
-#include "dq1/Pose.hpp"
-#include "dq1/Kinematics.hpp"
-#include "dq1/Geometry.hpp"
-#include "dq1/Solver.hpp"
-#include "dq1/Macro.hpp"
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include "dq1.hpp"
 
+PYBIND11_MODULE(dq1, m) {
+    pybind11::class_<MyClass>(m, "MyClass")
+        .def(pybind11::init<int>())
+        .def("set_value", &MyClass::set_value)
+        .def("get_value", &MyClass::get_value)
+        .def("print", &MyClass::print);
+}

@@ -16,16 +16,16 @@
  */
 
 /**
- *     \file include/dq1.hpp
+ *     \file include/Solver.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024
  */
 
 #pragma once
-#include "dq1/Pose.hpp"
-#include "dq1/Kinematics.hpp"
-#include "dq1/Geometry.hpp"
-#include "dq1/Solver.hpp"
-#include "dq1/Macro.hpp"
+#include <eigen3/Eigen/Dense>
+#include "Pose.hpp"
 
+namespace Solver
+{
+}
