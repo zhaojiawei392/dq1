@@ -22,7 +22,7 @@
  ##	   Date 2023-2024
  ##
 
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.25)
 
 # set the project name and version
 project(dq1 VERSION 1.0 LANGUAGES CXX)
