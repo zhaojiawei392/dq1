@@ -88,6 +88,7 @@ sudo make install
 The test files are blocked from building for saving time.
 
 After installing this three dependencies, dq1 can be installed and afterwards be used finally. Follow below steps to install dq1.
+
 ## 4. This library - dq1
 ```bash
 cd ~/Downloads
@@ -107,6 +108,15 @@ mkdir build
 cd build
 sudo cmake .. -DBUILD_SHARED_LIBS=OFF
 sudo make install
+```
+
+## 5. Done
+Try to run example1 through example2 and see what happens
+```bash
+./example1
+```
+```bash
+./example2
 ```
 
 
