@@ -22,7 +22,7 @@
 	Date 2023-2024
 
 
-# DualQuaternion
+# DualQuaternion-based robot control
 This project is the implementation of dual quaternion based robot control platform. About dual quaternion, please refer to https://en.wikipedia.org/wiki/Dual_quaternion. This project is solely intended for personal practice and experimentation. It does not come with any warranty or guarantee of safety.
 
 # How to install and use this library
@@ -37,7 +37,7 @@ cd build
 sudo cmake .. -DBUILD_SHARED_LIBS=ON
 sudo make install
 ```
-The build variable `BUILD_SHARED_LIBS` is set to `ON` so the compiler will build qpOASES as a shared library. Dependencies of shared must be shared and dependencies of static must be static. If you perfer to install it as a static library, use the following instead and keep in mind that the dq1 library also must be installed as a static library,:
+The build variable `BUILD_SHARED_LIBS` is set to `ON` so the compiler will build qpOASES as a shared library. Dependencies of shared must be shared and dependencies of static must be static. If you perfer to install it as a static library, use the following instead and keep in mind that the dq1 library also must be installed as a static library when you install the dq1 library afterwards:
 ```bash
 cd ~/Downloads
 git clone https://github.com/coin-or/qpOASES.git
