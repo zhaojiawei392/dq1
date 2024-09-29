@@ -150,8 +150,8 @@ public:
     inline qScalar_ z() const noexcept {return vals_[3];};
     inline Vector3<qScalar_> vec3() const noexcept {return vals_.template tail<3>();};
     inline Vector4<qScalar_> vec4() const noexcept {return vals_;};
-    inline scalar_t* data() const noexcept {return vec4().data();}
-    inline scalar_t* vrep_data() const noexcept {return (Vec4()<< vec3(), w()).finished().data(); }
+    inline qScalar_* data() const noexcept {return vec4().data();}
+    inline qScalar_* vrep_data() const noexcept {return (Vector4<qScalar_>()<< vec3(), w()).finished().data(); }
 
     // Friends "const"
     
@@ -233,7 +233,7 @@ public:
     Quaternion<qScalar_> exp() const noexcept =delete;
 
     // query
-    inline scalar_t* data() const noexcept {return vec3().data();}
+    inline qScalar_* data() const noexcept {return Quaternion<qScalar_>::vec3().data();}
 
     // Defaults
 
