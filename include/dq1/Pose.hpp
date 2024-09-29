@@ -30,7 +30,6 @@
 namespace dq1
 {
 
-
 // Template type alias
 using Eigen::VectorX;
 using Eigen::Vector3;
@@ -144,13 +143,15 @@ public:
 
     // Query const
 
-    std::string to_string() const;
-    qScalar_ w() const noexcept;
-    qScalar_ x() const noexcept;
-    qScalar_ y() const noexcept;
-    qScalar_ z() const noexcept;
-    Vector3<qScalar_> vec3() const noexcept;
-    Vector4<qScalar_> vec4() const noexcept;
+    inline std::string to_string() const {return operator std::string();};
+    inline qScalar_ w() const noexcept {return vals_[0];};
+    inline qScalar_ x() const noexcept {return vals_[1];}; 
+    inline qScalar_ y() const noexcept {return vals_[2];};
+    inline qScalar_ z() const noexcept {return vals_[3];};
+    inline Vector3<qScalar_> vec3() const noexcept {return vals_.template tail<3>();};
+    inline Vector4<qScalar_> vec4() const noexcept {return vals_;};
+    inline qScalar_* data() const noexcept {return vec4().data();}
+    inline qScalar_* vrep_data() const noexcept {return (Vector4<qScalar_>()<< vec3(), w()).finished().data(); }
 
     // Friends "const"
     
@@ -230,6 +231,9 @@ public:
     Translation inv() const noexcept;
     Quaternion<qScalar_> ln() const noexcept =delete;
     Quaternion<qScalar_> exp() const noexcept =delete;
+
+    // query
+    inline qScalar_* data() const noexcept {return Quaternion<qScalar_>::vec3().data();}
 
     // Defaults
 
@@ -574,27 +578,6 @@ Matrix4<qScalar_> Quaternion<qScalar_>::haminus() const noexcept
                                 y, -z,  w,  x,
                                 z,  y, -x,  w).finished();
 }
-
-template<typename qScalar_>
-std::string Quaternion<qScalar_>::to_string() const {return operator std::string();}
-
-template<typename qScalar_>
-qScalar_ Quaternion<qScalar_>::w() const noexcept {return vals_[0];}
-
-template<typename qScalar_>
-qScalar_ Quaternion<qScalar_>::x() const noexcept {return vals_[1];}
-
-template<typename qScalar_>
-qScalar_ Quaternion<qScalar_>::y() const noexcept {return vals_[2];}
-
-template<typename qScalar_>
-qScalar_ Quaternion<qScalar_>::z() const noexcept {return vals_[3];}
-
-template<typename qScalar_>
-Vector3<qScalar_> Quaternion<qScalar_>::vec3() const noexcept {return vals_.template tail<3>();}
-
-template<typename qScalar_>
-Vector4<qScalar_> Quaternion<qScalar_>::vec4() const noexcept {return vals_;}
 
 
 // ***********************************************************************************************************************

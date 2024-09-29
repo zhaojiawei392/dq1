@@ -16,69 +16,37 @@
  */
 
 /**
- *     \file include/Geometry.hpp
+ *     \file examples/example2.cpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024
  */
 
-#pragma once
-#include "Pose.hpp"
-#include "Macro.hpp"
+#include <iostream>
+#include <stdlib.h>
+#include "../include/dq1.hpp"
 
-namespace Geometry
+int main()
 {
-using namespace dq1::Macro;
 
-class Geo{
-protected:
-    int _label;
+    using namespace dq1::Macro;
+    Vec6 pos;
+    pos << 0,0,0,0,0,0;
     
-public:
-    virtual ~Geo()=default;
+    dq1::kinematics::SerialManipulator robot("../robots/robot1.json", pos);
 
-};
-
-class Point: public Geo{
-protected:
-    Vector3 
-
-};
-
-class Line: public Geo{
-
-};
-
-class LineSegment: public Geo{
-
-};
-
-class Plane: public Geo{
-
-};
-
-class PlaneSegment: public Geo{
-    
-};
-
-class Sphere: public Geo{
-
-};
-
-class Cuboid: public Geo{
-
-};
-
-class Cone: public Geo{
-
-};
-
-class Cylinder: public Geo{
-
-};
-
-class Capsule: public Geo{
-
-};
+    Pose x_init = robot.end_pose();
+    scalar_t radius = 0.01;
+    scalar_t rad_speed = 0.001;
+    size_t i = 0;
+    while (true)
+    {   
+        Tran offset = x_init.translation() + Tran(0, radius * cos(rad_speed*i), radius * sin(rad_speed*i));
+        ++i;
+        Pose xd = Pose::build_from(offset);
+        robot.update(xd);
+        std::cout << "translation error: " << robot.end_pose().translation() - xd.translation() << "\n";
+    }
 
 }
+

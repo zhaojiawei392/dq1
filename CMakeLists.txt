@@ -22,7 +22,7 @@
  ##	   Date 2023-2024
  ##
 
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.25)
 
 # set the project name and version
 project(dq1 VERSION 1.0 LANGUAGES CXX)
@@ -55,7 +55,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
-set(dq1_BUILD_EXAMPLES OFF CACHE BOOL "Build examples for dq1" FORCE)
+set(dq1_BUILD_EXAMPLES ON CACHE BOOL "Build examples for dq1" FORCE)
 
 if(APPLE)
   set(CMAKE_INSTALL_RPATH "@executable_path/../lib")

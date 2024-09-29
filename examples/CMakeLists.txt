@@ -29,6 +29,7 @@ if(dq1_BUILD_EXAMPLES)
     # Compile dq1 examples
     set(EXAMPLE_NAMES
         example1
+        example2
     )
 
     foreach(EXAMPLE ${EXAMPLE_NAMES})

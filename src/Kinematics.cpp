@@ -230,8 +230,8 @@ SerialManipulator::SerialManipulator(const std::string& params_file_path, const 
     DH_params.row(4) = Eigen::Map<RowVecx>(joint_types.data(), DOF);
 
     // Joint limits
-    std::vector<scalar_t> min_joint_position = data["joint_limits"]["min_joint_position"];
-    std::vector<scalar_t> max_joint_position = data["joint_limits"]["max_joint_position"];
+    std::vector<scalar_t> min_joint_position = data["joint_limits"]["min_joint_positions"];
+    std::vector<scalar_t> max_joint_position = data["joint_limits"]["max_joint_positions"];
     std::vector<scalar_t> min_joint_velocities = data["joint_limits"]["min_joint_velocities"];
     std::vector<scalar_t> max_joint_velocities = data["joint_limits"]["max_joint_velocities"];
 
@@ -284,9 +284,9 @@ void SerialManipulator::update(const Pose& desired_pose) {
     const Vecx& g = _cfg.translation_priority * ct + (1-_cfg.translation_priority) * cr;
     const Vecxd& gd = g.cast<double>();
 
-    const Matxd& constraint = Vecxd::Ones(DoF()).asDiagonal();
-    const Vecxd min_joint_positions_double = min_joint_positions().cast<double>();
-    const Vecxd max_joint_positions_double = max_joint_positions().cast<double>();
+    const Matxd& constraint = Matxd::Identity(DoF(), DoF());
+    const Vecxd lower_joint_distance_double = min_joint_positions().cast<double>() - joint_positions().cast<double>();
+    const Vecxd upper_joint_distance_double = max_joint_positions().cast<double>() - joint_positions().cast<double>();
     const Vecxd min_joint_velocirties_double = min_joint_velocities().cast<double>();
     const Vecxd max_joint_velocirties_double = max_joint_velocities().cast<double>();
 
@@ -295,17 +295,17 @@ void SerialManipulator::update(const Pose& desired_pose) {
     const double* A_raw = constraint.data();
     const double* lb_raw = min_joint_velocirties_double.data();
     const double* ub_raw = max_joint_velocirties_double.data();
-    const double* lb_A_raw = min_joint_positions_double.data();
-    const double* ub_A_raw = max_joint_positions_double.data();
+    const double* lb_A_raw = lower_joint_distance_double.data();
+    const double* ub_A_raw = upper_joint_distance_double.data();
 
-    static SQProblem qp(DoF(), 0);
+    static SQProblem qp(DoF(), DoF());
     static Options options;
     static int_t nWSR = 500;
-    options.printLevel = PL_LOW;
-    qp.setOptions(options);
 
     bool first_time(true);
     if (first_time){
+        options.printLevel = PL_LOW;
+        qp.setOptions(options);
         auto nWSR_in_use = nWSR;
         returnValue status = qp.init(H_raw, g_raw, A_raw, lb_raw, ub_raw, lb_A_raw, ub_A_raw, nWSR_in_use); 
         if (status != SUCCESSFUL_RETURN){
