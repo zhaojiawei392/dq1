@@ -30,7 +30,6 @@
 namespace dq1
 {
 
-
 // Template type alias
 using Eigen::VectorX;
 using Eigen::Vector3;

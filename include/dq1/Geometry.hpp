@@ -32,13 +32,16 @@ using namespace dq1::Macro;
 
 class Geo{
 protected:
-
+    int _label;
+    
 public:
+    virtual ~Geo()=default;
 
 };
 
 class Point: public Geo{
 protected:
+    Vector3 
 
 };
 
@@ -57,4 +60,25 @@ class Plane: public Geo{
 class PlaneSegment: public Geo{
     
 };
+
+class Sphere: public Geo{
+
+};
+
+class Cuboid: public Geo{
+
+};
+
+class Cone: public Geo{
+
+};
+
+class Cylinder: public Geo{
+
+};
+
+class Capsule: public Geo{
+
+};
+
 }
