@@ -87,7 +87,8 @@ sudo make install
 ```
 The test files are blocked from building for saving time.
 
-After installing this three dependencies, dq1 can be installed and afterwards be used finally. Follow these steps to install dq1:
+After installing this three dependencies, dq1 can be installed and afterwards be used finally. Follow below steps to install dq1.
+## 4. This library - dq1
 ```bash
 cd ~/Downloads
 git clone https://github.com/zhaojiawe392/dq1.git
