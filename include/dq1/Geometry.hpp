@@ -41,7 +41,9 @@ public:
 
 class Point: public Geo{
 protected:
-    Vector3 
+    Vec3 _position;
+public:
+    
 
 };
 
