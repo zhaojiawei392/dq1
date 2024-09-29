@@ -26,7 +26,7 @@
 This project is the implementation of dual quaternion based robot control platform. About dual quaternion, please refer to https://en.wikipedia.org/wiki/Dual_quaternion. This project is solely intended for personal practice and experimentation. It does not come with any warranty or guarantee of safety.
 
 # How to install and use this library
-This project has several dependencies. Make sure these dependencies are already installed within your environment, otherwise install them first. Here are some steps you might need to finish the installs:
+This project has several dependencies. Ensure these dependencies are already installed in your environment; if not, install them first. Here are some steps you might need to follow to complete the installation:
 ## 1. Quadratic programming solver - [qpOASES](https://coin-or.github.io/qpOASES/doc/3.0/doxygen/index.html)
 ```bash
 cd ~/Downloads
