@@ -27,7 +27,7 @@ This project is the implementation of dual quaternion based robot control platfo
 
 # How to install and use this library
 This project has several dependencies. Make sure these dependencies are already installed within your environment, otherwise install them first. Here are some steps you might need to finish the installs:
-## 1. Quadratic programming solver - qpOASES
+## 1. Quadratic programming solver - [qpOASES](https://coin-or.github.io/qpOASES/doc/3.0/doxygen/index.html)
 ```bash
 cd ~/Downloads
 git clone https://github.com/coin-or/qpOASES.git
@@ -37,7 +37,7 @@ cd build
 sudo cmake .. -DBUILD_SHARED_LIBS=ON
 sudo make install
 ```
-The build variable `BUILD_SHARED_LIBS` is set to `ON` so the compiler will build qpOASES as a shared library. Dependencies of shared must be shared and dependencies of static must be static. If you perfer to install it as a static library, keep in mind that the dq1 library also must be installed as a static library, use the following to install qpOASES as static instead:
+The build variable `BUILD_SHARED_LIBS` is set to `ON` so the compiler will build qpOASES as a shared library. Dependencies of shared must be shared and dependencies of static must be static. If you perfer to install it as a static library, use the following instead and keep in mind that the dq1 library also must be installed as a static library,:
 ```bash
 cd ~/Downloads
 git clone https://github.com/coin-or/qpOASES.git
@@ -97,7 +97,7 @@ cd build
 sudo cmake ..
 sudo make install
 ```
-Here, the build variable `BUILD_SHARED_LIBS` is set to `ON` by default, but this is only possible if qpOASES was installed as a shared library as well in previous steps. If you want to keep installed static, use following instead:
+Here, the build variable `BUILD_SHARED_LIBS` is set to `ON` by default, but this is only possible if qpOASES was installed as a shared library as well in previous steps. If you want to keep installed static, use the following instead and keep in mind that the dependency qpOASES library also must be installed as a static library:
 ```bash
 cd ~/Downloads
 git clone https://github.com/zhaojiawe392/dq1.git
