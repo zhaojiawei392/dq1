@@ -37,7 +37,17 @@ cd build
 sudo cmake .. -DBUILD_SHARED_LIBS=ON
 sudo make install
 ```
-Here the build variable `BUILD_SHARED_LIBS` is set to `ON` so the compiler will build qpOASES as shared object. The default install path is `/usr/local/lib`, which is not in the dynamic linker's search path. this results in runtime error while the program tries to access the libqpOASES.so, complaining no such file or directory. So to fix this issue, we need to add the path `/usr/local/lib` to the dynamic linker's search path. Here is a permanent solution:
+The build variable `BUILD_SHARED_LIBS` is set to `ON` so the compiler will build qpOASES as a shared library. Dependencies of shared must be shared and dependencies of static must be static. If you perfer to install it as a static library, keep in mind that the dq1 library also must be installed as a static library, use the following to install qpOASES as static instead:
+```bash
+cd ~/Downloads
+git clone https://github.com/coin-or/qpOASES.git
+cd qpOASES
+mkdir build
+cd build
+sudo cmake .. -DBUILD_SHARED_LIBS=OFF
+sudo make install
+```
+The default install path of qpOASES is `/usr/local/lib`, which is not in the dynamic linker's search path. this results in runtime error while the program tries to access the libqpOASES.so, complaining no such file or directory. So to fix this issue, we need to add the path `/usr/local/lib` to the dynamic linker's search path. Here is a permanent solution:
 1. create a new conf file for storing the path `/usr/local/lib`
 ```bash
 sudo nano /etc/ld.so.conf.d/local.conf
@@ -54,6 +64,49 @@ sudo nano /etc/ld.so.conf.d/local.conf
 sudo ldconfig
 ```
 
-## 2. 
+## 2. Linear algebra template library - [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)
+```bash
+cd ~/Downloads
+git clone https://gitlab.com/libeigen/eigen.git
+cd eigen
+mkdir build
+cd build
+sudo cmake .. 
+sudo make install
+```
+
+## 3. [nlohmann/json](https://json.nlohmann.me/)
+```bash
+cd ~/Downloads
+git clone https://github.com/nlohmann/json.git
+cd json
+mkdir build
+cd build
+sudo cmake .. -DJSON_BuildTests=OFF
+sudo make install
+```
+The test files are blocked from building for saving time.
+
+After installing this three dependencies, dq1 can be installed and afterwards be used finally. Follow these steps to install dq1:
+```bash
+cd ~/Downloads
+git clone https://github.com/zhaojiawe392/dq1.git
+cd dq1
+mkdir build
+cd build
+sudo cmake ..
+sudo make install
+```
+Here, the build variable `BUILD_SHARED_LIBS` is set to `ON` by default, but this is only possible if qpOASES was installed as a shared library as well in previous steps. If you want to keep installed static, use following instead:
+```bash
+cd ~/Downloads
+git clone https://github.com/zhaojiawe392/dq1.git
+cd dq1
+mkdir build
+cd build
+sudo cmake .. -DBUILD_SHARED_LIBS=OFF
+sudo make install
+```
+
 
 
