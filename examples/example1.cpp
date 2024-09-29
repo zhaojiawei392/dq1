@@ -31,7 +31,7 @@ namespace example{
 
 void display()
 {
-using namespace dq1;
+using namespace dq1::Macro;
     std::cout << "i: " << i_ << "\n";
     std::cout << "j: " << j_ << "\n";
     std::cout << "k: " << k_ << "\n";
@@ -83,18 +83,18 @@ using namespace dq1;
 }
 
 void construct1(){
-
-    dq1::Vec4f vec = {1,2,3,4};
-    std::vector<dq1::Vec4f> vec_vec;
+using namespace dq1::Macro;
+    Vec4 vec = {1,2,3,4};
+    std::vector<Vec4> vec_vec;
     for (size_t i=0; i<10000000; i++){
-        vec_vec.emplace_back(dq1::Vec4f(vec));
+        vec_vec.emplace_back(Vec4(vec));
     }
-    std::vector<dq1::Quat> q_vec;
+    std::vector<Quat> q_vec;
     
     auto start0 = std::chrono::high_resolution_clock::now();
 
     for (size_t i=0; i<10000000; i++){
-        q_vec.emplace_back(dq1::Quat(std::move(vec_vec[i])));
+        q_vec.emplace_back(Quat(std::move(vec_vec[i])));
     }
     auto end0 = std::chrono::high_resolution_clock::now();
 
@@ -105,7 +105,7 @@ void construct1(){
     auto start1 = std::chrono::high_resolution_clock::now();
 
     for (size_t i=0; i<10000000; i++){
-        q_vec.emplace_back(dq1::Quat(vec_vec[i]));
+        q_vec.emplace_back(Quat(vec_vec[i]));
     }
     auto end1 = std::chrono::high_resolution_clock::now();
 
@@ -118,14 +118,15 @@ void construct1(){
 
 void construct2(){
 
-    dq1::Vec3f vec = {0,0,1};
+using namespace dq1::Macro;
+    Vec3 vec = {0,0,1};
 
-    std::vector<dq1::Quat> q_vec;
+    std::vector<Quat> q_vec;
     
     auto start0 = std::chrono::high_resolution_clock::now();
 
     for (size_t i=0; i<10000000; i++){
-        q_vec.emplace_back(dq1::Quat(vec, 0.5, 1));
+        q_vec.emplace_back(Quat(vec, 0.5, 1));
     }
     auto end0 = std::chrono::high_resolution_clock::now();
 

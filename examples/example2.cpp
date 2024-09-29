@@ -16,16 +16,37 @@
  */
 
 /**
- *     \file include/dq1.hpp
+ *     \file examples/example2.cpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024
  */
 
-#pragma once
-#include "dq1/Pose.hpp"
-#include "dq1/Kinematics.hpp"
-// #include "dq1/Geometry.hpp"
-// #include "dq1/Solver.hpp"
-#include "dq1/Macro.hpp"
+#include <iostream>
+#include <stdlib.h>
+#include "../include/dq1.hpp"
+
+int main()
+{
+
+    using namespace dq1::Macro;
+    Vec6 pos;
+    pos << 0,0,0,0,0,0;
+    
+    dq1::kinematics::SerialManipulator robot("../robots/robot1.json", pos);
+
+    Pose x_init = robot.end_pose();
+    scalar_t radius = 0.01;
+    scalar_t rad_speed = 0.001;
+    size_t i = 0;
+    while (true)
+    {   
+        Tran offset = x_init.translation() + Tran(0, radius * cos(rad_speed*i), radius * sin(rad_speed*i));
+        ++i;
+        Pose xd = Pose::build_from(offset);
+        robot.update(xd);
+        std::cout << "translation error: " << robot.end_pose().translation() - xd.translation() << "\n";
+    }
+
+}
 
