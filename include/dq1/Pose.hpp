@@ -83,7 +83,7 @@ class Pose;
 template<typename qScalar_>
 class Quaternion{
 protected:
-    Vector4<qScalar_> vals_;
+    Vector4<qScalar_> _vec4;
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
     Quaternion(const qScalar_ w, const Vector3<qScalar_> vec3);
     template <typename T = qScalar_, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -144,12 +144,12 @@ public:
     // Query const
 
     inline std::string to_string() const {return operator std::string();};
-    inline qScalar_ w() const noexcept {return vals_[0];};
-    inline qScalar_ x() const noexcept {return vals_[1];}; 
-    inline qScalar_ y() const noexcept {return vals_[2];};
-    inline qScalar_ z() const noexcept {return vals_[3];};
-    inline Vector3<qScalar_> vec3() const noexcept {return vals_.template tail<3>();};
-    inline Vector4<qScalar_> vec4() const noexcept {return vals_;};
+    inline qScalar_ w() const noexcept {return _vec4[0];};
+    inline qScalar_ x() const noexcept {return _vec4[1];}; 
+    inline qScalar_ y() const noexcept {return _vec4[2];};
+    inline qScalar_ z() const noexcept {return _vec4[3];};
+    inline Vector3<qScalar_> vec3() const noexcept {return _vec4.template tail<3>();};
+    inline Vector4<qScalar_> vec4() const noexcept {return _vec4;};
     inline qScalar_* data() const noexcept {return vec4().data();}
     inline qScalar_* vrep_data() const noexcept {return (Vector4<qScalar_>()<< vec3(), w()).finished().data(); }
 
@@ -362,15 +362,15 @@ public:
 
 template<typename Scalar_>
 void _real_part_should_be_zero(std::string&& calling_fn, Quaternion<Scalar_>& quaternion) {
-    double real = std::abs(quaternion.vals_[0]);
+    double real = std::abs(quaternion._vec4[0]);
     if (real > FLOAT_OMIT_THRESHOLD){
         if (VERY_VERBOSE)
             std::cout << "Warning: " << std::fixed << std::setprecision(PRINT_PRECISION) << 
-                     std::move(calling_fn) << " detected Pure Quaternion with real part " << quaternion.vals_[0] << ".\n";
+                     std::move(calling_fn) << " detected Pure Quaternion with real part " << quaternion._vec4[0] << ".\n";
         if (real > FLOAT_ERROR_THRESHOLD)
-            throw std::runtime_error(std::move(calling_fn) + " detected bad Pure Quaternion real part " + std::to_string(quaternion.vals_[0]) + ".\n");
+            throw std::runtime_error(std::move(calling_fn) + " detected bad Pure Quaternion real part " + std::to_string(quaternion._vec4[0]) + ".\n");
     }
-    // quaternion.vals_[0] = 0;
+    // quaternion._vec4[0] = 0;
 }
 
 template<typename Scalar_>
@@ -383,7 +383,7 @@ void _norm_should_be_one(std::string&& calling_fn, Quaternion<Scalar_>& quaterni
         if (norm_err > FLOAT_ERROR_THRESHOLD)
             throw std::runtime_error(std::move(calling_fn) + " detected bad Unit Quaternion norm " + std::to_string(quaternion.norm()) + ".\n");
     } 
-    // quaternion.vals_.normalize();
+    // quaternion._vec4.normalize();
 }
 
 template<typename Scalar_>
@@ -394,19 +394,19 @@ return os;
 
 template<typename fScalar_>
 Quaternion<fScalar_> operator*(const Quaternion<fScalar_>& quaternion1, const Quaternion<fScalar_>& quaternion2) noexcept{
-    return Quaternion<fScalar_>(quaternion1.hamiplus() * quaternion2.vals_); 
+    return Quaternion<fScalar_>(quaternion1.hamiplus() * quaternion2._vec4); 
 }
 
 template<typename Scalar_, typename fScalar_>
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<fScalar_>> 
 operator*(const Quaternion<fScalar_>& quaternion, const Scalar_ scalar) noexcept{
-    return Quaternion<fScalar_>(quaternion.vals_ * scalar);
+    return Quaternion<fScalar_>(quaternion._vec4 * scalar);
 }
 
 template<typename Scalar_, typename fScalar_>
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<fScalar_>>
 operator*(const Scalar_ scalar, const Quaternion<fScalar_>& quaternion) noexcept {
-    return Quaternion<fScalar_>(quaternion.vals_ * scalar);
+    return Quaternion<fScalar_>(quaternion._vec4 * scalar);
 }
 
 
@@ -419,11 +419,11 @@ operator*(const Scalar_ scalar, const Quaternion<fScalar_>& quaternion) noexcept
 template<typename qScalar_>
 template<typename T, typename>
 Quaternion<qScalar_>::Quaternion()
-    :vals_(Vector4<qScalar_>::Zero()){}
+    :_vec4(Vector4<qScalar_>::Zero()){}
 
 template<typename qScalar_>
 template<typename T, typename>
-Quaternion<qScalar_>::Quaternion(const Vector4<qScalar_>& vec4): vals_(vec4){
+Quaternion<qScalar_>::Quaternion(const Vector4<qScalar_>& vec4): _vec4(vec4){
 
 }
 
@@ -431,86 +431,86 @@ template<typename qScalar_>
 template<typename T, typename>
 Quaternion<qScalar_>::Quaternion(const qScalar_ w, const Vector3<qScalar_> vec3)
 {
-    vals_ << w, vec3;
+    _vec4 << w, vec3;
 }
 
 template<typename qScalar_>
 template<typename T, typename>
-Quaternion<qScalar_>::Quaternion(const qScalar_ w, const qScalar_ x, const qScalar_ y, const qScalar_ z) :vals_((Vector4<qScalar_>() << w, x, y, z).finished()){}
+Quaternion<qScalar_>::Quaternion(const qScalar_ w, const qScalar_ x, const qScalar_ y, const qScalar_ z) :_vec4((Vector4<qScalar_>() << w, x, y, z).finished()){}
 
 template<typename qScalar_>
 template<typename T, typename>
 Quaternion<qScalar_>::Quaternion(const Vector3<qScalar_> rotation_axis_vec3, const qScalar_ rotation_angle, const qScalar_ norm){
-    vals_ << cos(0.5 * rotation_angle), sin(0.5 * rotation_angle) * rotation_axis_vec3.normalized();
-    vals_ *= norm;
+    _vec4 << cos(0.5 * rotation_angle), sin(0.5 * rotation_angle) * rotation_axis_vec3.normalized();
+    _vec4 *= norm;
 }
 
 template<typename qScalar_>
 template<typename T, typename>
 Quaternion<qScalar_>::Quaternion(const UnitAxis<qScalar_> rotation_axis, const qScalar_ rotation_angle, const qScalar_ norm){
-    vals_ << cos(0.5 * rotation_angle), sin(0.5 * rotation_angle) * rotation_axis.vec3();
-    vals_ *= norm;
+    _vec4 << cos(0.5 * rotation_angle), sin(0.5 * rotation_angle) * rotation_axis.vec3();
+    _vec4 *= norm;
 }
 
 template<typename qScalar_>
-Quaternion<qScalar_>& Quaternion<qScalar_>::operator+=(const Quaternion& other) noexcept {vals_ += other.vals_; return *this;}
+Quaternion<qScalar_>& Quaternion<qScalar_>::operator+=(const Quaternion& other) noexcept {_vec4 += other._vec4; return *this;}
 
 template<typename qScalar_>
-Quaternion<qScalar_>& Quaternion<qScalar_>::operator-=(const Quaternion& other) noexcept {vals_ -= other.vals_; return *this;}
+Quaternion<qScalar_>& Quaternion<qScalar_>::operator-=(const Quaternion& other) noexcept {_vec4 -= other._vec4; return *this;}
 
 template<typename qScalar_>
-Quaternion<qScalar_>& Quaternion<qScalar_>::operator*=(const Quaternion& other) noexcept {vals_ = hamiplus() * other.vals_; return *this;}
-
-template<typename qScalar_>
-template<typename Scalar_>
-std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>&> 
-Quaternion<qScalar_>::operator*=(const Scalar_ scalar) noexcept {vals_ *= scalar; return *this;}
+Quaternion<qScalar_>& Quaternion<qScalar_>::operator*=(const Quaternion& other) noexcept {_vec4 = hamiplus() * other._vec4; return *this;}
 
 template<typename qScalar_>
 template<typename Scalar_>
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>&> 
-Quaternion<qScalar_>::operator/=(const Scalar_ scalar) noexcept {vals_ /= scalar; return *this;}
+Quaternion<qScalar_>::operator*=(const Scalar_ scalar) noexcept {_vec4 *= scalar; return *this;}
+
+template<typename qScalar_>
+template<typename Scalar_>
+std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>&> 
+Quaternion<qScalar_>::operator/=(const Scalar_ scalar) noexcept {_vec4 /= scalar; return *this;}
 
 template<typename qScalar_>
 Quaternion<qScalar_>& Quaternion<qScalar_>::normalize(){
-    vals_.normalize();
+    _vec4.normalize();
     return *this;
 }
 
 template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator+(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(vals_ + other.vals_);}
+Quaternion<qScalar_> Quaternion<qScalar_>::operator+(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(_vec4 + other._vec4);}
 
 template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator-(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(vals_ - other.vals_);}
+Quaternion<qScalar_> Quaternion<qScalar_>::operator-(const Quaternion& other) const noexcept {return Quaternion<qScalar_>(_vec4 - other._vec4);}
 
 template<typename qScalar_>
 template<typename Scalar_> 
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>> 
-Quaternion<qScalar_>::operator/(const Scalar_ scalar) const noexcept {return Quaternion<qScalar_>(vals_ / scalar);}
+Quaternion<qScalar_>::operator/(const Scalar_ scalar) const noexcept {return Quaternion<qScalar_>(_vec4 / scalar);}
 
 template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::operator-() const noexcept {return Quaternion<qScalar_>(-vals_);}
+Quaternion<qScalar_> Quaternion<qScalar_>::operator-() const noexcept {return Quaternion<qScalar_>(-_vec4);}
 
 template<typename qScalar_>
-bool Quaternion<qScalar_>::operator==(const Quaternion& other) const noexcept {return vals_ == other.vals_;}
+bool Quaternion<qScalar_>::operator==(const Quaternion& other) const noexcept {return _vec4 == other._vec4;}
 
 template<typename qScalar_>
-bool Quaternion<qScalar_>::operator!=(const Quaternion& other) const noexcept {return vals_ != other.vals_;}
+bool Quaternion<qScalar_>::operator!=(const Quaternion& other) const noexcept {return _vec4 != other._vec4;}
 
 template<typename qScalar_>
 Quaternion<qScalar_>::operator std::string() const
 {
     std::ostringstream oss;
     oss << std::fixed << std::setprecision(PRINT_PRECISION); // Set fixed-point notation and precision
-    oss << vals_[0] << " + " << vals_[1] << " î + " << vals_[2] << " ĵ + " << vals_[3] << " k̂ ";
+    oss << _vec4[0] << " + " << _vec4[1] << " î + " << _vec4[2] << " ĵ + " << _vec4[3] << " k̂ ";
     return oss.str();
 }   
 
 template<typename qScalar_>
-qScalar_ Quaternion<qScalar_>::norm() const noexcept {return vals_.norm();}
+qScalar_ Quaternion<qScalar_>::norm() const noexcept {return _vec4.norm();}
 
 template<typename qScalar_>
-qScalar_ Quaternion<qScalar_>::rotation_angle() const noexcept {return 2 * acos(vals_[0] / norm());}
+qScalar_ Quaternion<qScalar_>::rotation_angle() const noexcept {return 2 * acos(_vec4[0] / norm());}
 
 template<typename qScalar_>
 UnitAxis<qScalar_> Quaternion<qScalar_>::rotation_axis() const noexcept {return UnitAxis<qScalar_>( rotation_axis_vec3() );}
@@ -525,7 +525,7 @@ Vector3<qScalar_> Quaternion<qScalar_>::rotation_axis_vec3() const noexcept
 }
 
 template<typename qScalar_>
-Quaternion<qScalar_> Quaternion<qScalar_>::conj() const noexcept {return Quaternion( (Vector4<qScalar_>() << vals_[0], -vec3()).finished() ); }
+Quaternion<qScalar_> Quaternion<qScalar_>::conj() const noexcept {return Quaternion( (Vector4<qScalar_>() << _vec4[0], -vec3()).finished() ); }
 
 template<typename qScalar_>
 Quaternion<qScalar_> Quaternion<qScalar_>::inv() const noexcept {return conj() / square(norm());}
@@ -539,7 +539,7 @@ Quaternion<qScalar_> Quaternion<qScalar_>::ln() const noexcept
 template<typename qScalar_>
 Quaternion<qScalar_> Quaternion<qScalar_>::exp() const noexcept 
 {
-    return Quaternion<qScalar_>(std::exp(vals_[0]) * cos(vec3().norm()), std::exp(vals_[0]) * sin( vec3().norm() ) * vec3().normalized());
+    return Quaternion<qScalar_>(std::exp(_vec4[0]) * cos(vec3().norm()), std::exp(_vec4[0]) * sin( vec3().norm() ) * vec3().normalized());
 } 
 
 template<typename qScalar_>
@@ -556,10 +556,10 @@ Rotation<qScalar_> Quaternion<qScalar_>::normalized() const noexcept {return Rot
 template<typename qScalar_>
 Matrix4<qScalar_> Quaternion<qScalar_>::hamiplus() const noexcept 
 {      
-    const qScalar_ w = vals_[0];
-    const qScalar_ x = vals_[1];
-    const qScalar_ y = vals_[2];
-    const qScalar_ z = vals_[3];
+    const qScalar_ w = _vec4[0];
+    const qScalar_ x = _vec4[1];
+    const qScalar_ y = _vec4[2];
+    const qScalar_ z = _vec4[3];
     return (Matrix4<qScalar_>() << w, -x, -y, -z,
                                 x,  w, -z,  y,
                                 y,  z,  w, -x,
@@ -569,10 +569,10 @@ Matrix4<qScalar_> Quaternion<qScalar_>::hamiplus() const noexcept
 template<typename qScalar_>
 Matrix4<qScalar_> Quaternion<qScalar_>::haminus() const noexcept 
 {
-    const qScalar_ w = vals_[0];
-    const qScalar_ x = vals_[1];
-    const qScalar_ y = vals_[2];
-    const qScalar_ z = vals_[3];
+    const qScalar_ w = _vec4[0];
+    const qScalar_ x = _vec4[1];
+    const qScalar_ y = _vec4[2];
+    const qScalar_ z = _vec4[3];
     return (Matrix4<qScalar_>() << w, -x, -y, -z,
                                 x,  w,  z, -y,
                                 y, -z,  w,  x,
@@ -625,13 +625,13 @@ Translation<qScalar_>& Translation<qScalar_>::operator=(Quaternion<qScalar_>&& o
 
 template<typename qScalar_>
 Translation<qScalar_>& Translation<qScalar_>::operator+=(const Translation& other) {
-    this->vals_ += other.vals_;
+    this->_vec4 += other._vec4;
     _real_part_should_be_zero("Translation<qScalar_>::operator+=(const Translation& other)", *this);
     return *this;
 }
 template<typename qScalar_>
 Translation<qScalar_>& Translation<qScalar_>::operator-=(const Translation& other) {
-    this->vals_ -= other.vals_;
+    this->_vec4 -= other._vec4;
     _real_part_should_be_zero("Translation<qScalar_>::operator-=(const Translation& other)", *this);
     return *this;
 }
@@ -639,7 +639,7 @@ template<typename qScalar_>
 template<typename Scalar_> 
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, Translation<qScalar_>&>
 Translation<qScalar_>::operator*=(const Scalar_ scalar) {
-    this->vals_ *= scalar;
+    this->_vec4 *= scalar;
     _real_part_should_be_zero("Translation<qScalar_>::operator*=(const Translation& other)", *this);
     return *this;
 }
@@ -647,14 +647,14 @@ template<typename qScalar_>
 template<typename Scalar_>
 std::enable_if_t<std::is_arithmetic_v<Scalar_>, Translation<qScalar_>&>
 Translation<qScalar_>::operator/=(const Scalar_ scalar) {
-    this->vals_ /= scalar;
+    this->_vec4 /= scalar;
     _real_part_should_be_zero("Translation<qScalar_>::operator/=(const Translation& other)", *this);
     return *this;
 }
 template<typename qScalar_>
 Translation<qScalar_>& Translation<qScalar_>::normalize(){
     _real_part_should_be_zero("Translation<qScalar_>::normalize()", *this);
-    this->vals_.normalize();
+    this->_vec4.normalize();
     return *this;
 }
 
@@ -746,19 +746,19 @@ Rotation<qScalar_>& Rotation<qScalar_>::operator=(Quaternion<qScalar_>&& other) 
 
 template<typename qScalar_>
 Rotation<qScalar_>& Rotation<qScalar_>::operator*=(const Rotation& other) {
-    this->vals_ = this->hamiplus() * other.vals_;
+    this->_vec4 = this->hamiplus() * other._vec4;
     _norm_should_be_one("Rotation<qScalar_>::operator*=(const Rotation& other)", *this);
     return *this;
 }
 template<typename qScalar_>
 Rotation<qScalar_>& Rotation<qScalar_>::normalize(){
-    this->vals_.normalize();
+    this->_vec4.normalize();
     return *this;
 }
 
 template<typename qScalar_>
 qScalar_ Rotation<qScalar_>::rotation_angle() const noexcept{
-    return 2 * acos(this->vals_[0]);
+    return 2 * acos(this->_vec4[0]);
 }
 
 template<typename qScalar_>
@@ -770,7 +770,7 @@ std::enable_if_t<std::is_arithmetic_v<Scalar_>, Rotation<qScalar_>>
 
 template<typename qScalar_>
 Rotation<qScalar_> Rotation<qScalar_>::conj() const noexcept{
-    return Rotation<qScalar_>(this->vals_[0], -this->vals_.template tail<3>());
+    return Rotation<qScalar_>(this->_vec4[0], -this->_vec4.template tail<3>());
 }
 
 template<typename qScalar_>
@@ -834,7 +834,7 @@ UnitAxis<qScalar_>& UnitAxis<qScalar_>::operator=(Quaternion<qScalar_>&& other) 
 }
 template<typename qScalar_>
 UnitAxis<qScalar_>& UnitAxis<qScalar_>::normalize(){
-    this->vals_.normalize();
+    this->_vec4.normalize();
     return *this;
 }
 
