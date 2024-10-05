@@ -202,8 +202,8 @@ public:
     Translation& operator=(Quaternion<qScalar_>&& q);
 
     // mutable operators
-    Translation& operator+=(const Translation& other);
-    Translation& operator-=(const Translation& other);
+    Translation& operator+=(const Translation& other) noexcept;
+    Translation& operator-=(const Translation& other) noexcept;
     Translation& operator*=(const Translation& other) noexcept=delete;
     template<typename Scalar_> 
     std::enable_if_t<std::is_arithmetic_v<Scalar_>, Translation&>
@@ -273,7 +273,7 @@ public:
     // mutable operators
     Rotation& operator+=(const Rotation& other) noexcept=delete;
     Rotation& operator-=(const Rotation& other) noexcept=delete;
-    Rotation& operator*=(const Rotation& other) ;
+    Rotation& operator*=(const Rotation& other) noexcept;
     template<typename Scalar_> 
     std::enable_if_t<std::is_arithmetic_v<Scalar_>, Rotation&>
     operator*=(const Scalar_ scalar) noexcept=delete;
