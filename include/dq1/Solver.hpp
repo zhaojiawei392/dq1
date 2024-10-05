@@ -16,7 +16,7 @@
  */
 
 /**
- *     \file include/Solver.hpp
+ *     \file include/dq1/Solver.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024

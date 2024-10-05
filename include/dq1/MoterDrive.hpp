@@ -16,71 +16,10 @@
  */
 
 /**
- *     \file include/dq1/Geometry.hpp
+ *     \file include/dq1/MotorDrive.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024
  */
 
 #pragma once
-#include "Pose.hpp"
-#include "Macro.hpp"
-
-namespace Geometry
-{
-using namespace dq1::Macro;
-
-class Geo{
-protected:
-    int _label;
-    
-public:
-    virtual ~Geo()=default;
-
-};
-
-class Point: public Geo{
-protected:
-    Vec3 _position;
-public:
-    
-
-};
-
-class Line: public Geo{
-
-};
-
-class LineSegment: public Geo{
-
-};
-
-class Plane: public Geo{
-
-};
-
-class PlaneSegment: public Geo{
-    
-};
-
-class Sphere: public Geo{
-
-};
-
-class Cuboid: public Geo{
-
-};
-
-class Cone: public Geo{
-
-};
-
-class Cylinder: public Geo{
-
-};
-
-class Capsule: public Geo{
-
-};
-
-}

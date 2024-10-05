@@ -16,7 +16,7 @@
  */
 
 /**
- *     \file include/Kinematics.hpp
+ *     \file include/dq1/Kinematics.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024

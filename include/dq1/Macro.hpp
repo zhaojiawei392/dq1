@@ -16,7 +16,7 @@
  */
 
 /**
- *     \file include/Macro.hpp
+ *     \file include/dq1/Macro.hpp
  *	   \author Jiawei ZHAO
  *	   \version 1.0
  *	   \date 2023-2024
