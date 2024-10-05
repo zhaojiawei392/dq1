@@ -624,13 +624,13 @@ Translation<qScalar_>& Translation<qScalar_>::operator=(Quaternion<qScalar_>&& o
 }
 
 template<typename qScalar_>
-Translation<qScalar_>& Translation<qScalar_>::operator+=(const Translation& other) {
+Translation<qScalar_>& Translation<qScalar_>::operator+=(const Translation& other) noexcept {
     this->_vec4 += other._vec4;
     _real_part_should_be_zero("Translation<qScalar_>::operator+=(const Translation& other)", *this);
     return *this;
 }
 template<typename qScalar_>
-Translation<qScalar_>& Translation<qScalar_>::operator-=(const Translation& other) {
+Translation<qScalar_>& Translation<qScalar_>::operator-=(const Translation& other) noexcept {
     this->_vec4 -= other._vec4;
     _real_part_should_be_zero("Translation<qScalar_>::operator-=(const Translation& other)", *this);
     return *this;
@@ -745,7 +745,7 @@ Rotation<qScalar_>& Rotation<qScalar_>::operator=(Quaternion<qScalar_>&& other) 
 }
 
 template<typename qScalar_>
-Rotation<qScalar_>& Rotation<qScalar_>::operator*=(const Rotation& other) {
+Rotation<qScalar_>& Rotation<qScalar_>::operator*=(const Rotation& other) noexcept {
     this->_vec4 = this->hamiplus() * other._vec4;
     _norm_should_be_one("Rotation<qScalar_>::operator*=(const Rotation& other)", *this);
     return *this;
