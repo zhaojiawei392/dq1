@@ -22,7 +22,7 @@
  ##	   Date 2023-2024
  ##
 
- message(STATUS "BUILD_SHARED_LIBS is set to ${BUILD_SHARED_LIBS}")
+message(STATUS "BUILD_SHARED_LIBS is set to ${BUILD_SHARED_LIBS}")
 add_library(dq1 Kinematics.cpp)
 
 set_property(TARGET dq1 PROPERTY VERSION ${PACKAGE_VERSION})
@@ -62,4 +62,20 @@ install(TARGETS ${installable_libs}
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ 
     DESTINATION include 
     FILES_MATCHING PATTERN "*.hpp")
+
+
+# Install pybind
+# Find Python and Pybind11
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)  # Finds Python
+find_package(pybind11 REQUIRED)  # Finds Pybind11
+
+# Name of the Python module
+set(MODULE_NAME "pydq1")
+
+# Add the library (the Python module)
+pybind11_add_module(${MODULE_NAME} pyWarpper.cpp)
+
+# Installation target
+install(TARGETS ${MODULE_NAME}
+        LIBRARY DESTINATION ${Python3_SITEARCH})  # Destination for the module
 
