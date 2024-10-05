@@ -23,3 +23,19 @@
  */
 
 #pragma once
+#include <boost/asio.hpp>
+#include "Pose.hpp"
+#include "Macro.hpp"
+
+
+namespace Drive
+{
+
+class MoterDrive {
+protected:
+
+public:
+
+};
+
+}
