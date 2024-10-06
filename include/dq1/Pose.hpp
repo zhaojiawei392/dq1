@@ -220,6 +220,11 @@ public:
         return Translation(rotation.conj() * (*this) * rotation);
     }
 
+    Quaternion<qScalar_> operator+(const Quaternion<qScalar_>& other) const noexcept=delete;
+    Quaternion<qScalar_> operator-(const Quaternion<qScalar_>& other) const noexcept=delete;
+    Translation operator+(const Translation& other) const noexcept;
+    Translation operator-(const Translation& other) const noexcept;
+
     // Service functions
     qScalar_ rotation_angle() const noexcept =delete;
     UnitAxis<qScalar_> rotation_axis() const noexcept =delete;
@@ -275,6 +280,12 @@ public:
     Rotation& operator-=(const Rotation& other) noexcept=delete;
     Rotation& operator*=(const Rotation& other) noexcept;
     template<typename Scalar_> 
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>&>
+    operator*=(const Scalar_ scalar) noexcept=delete;
+    template<typename Scalar_>
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion<qScalar_>&>
+    operator/=(const Scalar_ scalar) noexcept=delete;
+    template<typename Scalar_> 
     std::enable_if_t<std::is_arithmetic_v<Scalar_>, Rotation&>
     operator*=(const Scalar_ scalar) noexcept=delete;
     template<typename Scalar_>
@@ -282,6 +293,9 @@ public:
     operator/=(const Scalar_ scalar) noexcept=delete;
     Rotation& normalize();
     
+    Quaternion<qScalar_> operator+(const Quaternion<qScalar_>& other) const noexcept=delete;
+    Quaternion<qScalar_> operator-(const Quaternion<qScalar_>& other) const noexcept=delete;
+
     // Service functions
     qScalar_ rotation_angle() const noexcept;
     template<typename Scalar_>
@@ -330,6 +344,9 @@ public:
     template<typename Scalar_>
     std::enable_if_t<std::is_arithmetic_v<Scalar_>, UnitAxis&>
     operator/=(const Scalar_ scalar) noexcept=delete;
+
+    Quaternion<qScalar_> operator+(const Quaternion<qScalar_>& other) const noexcept=delete;
+    Quaternion<qScalar_> operator-(const Quaternion<qScalar_>& other) const noexcept=delete;
 
     Quaternion<qScalar_> ln() const noexcept=delete;
     Quaternion<qScalar_> exp() const noexcept=delete;
@@ -656,6 +673,16 @@ Translation<qScalar_>& Translation<qScalar_>::normalize(){
     _real_part_should_be_zero("Translation<qScalar_>::normalize()", *this);
     this->_vec4.normalize();
     return *this;
+}
+
+template<typename qScalar_>
+Translation<qScalar_> Translation<qScalar_>::operator+(const Translation<qScalar_>& other) const noexcept{
+    return Translation(_vec4 + other._vec4);
+}
+
+template<typename qScalar_>
+Translation<qScalar_> Translation<qScalar_>::operator-(const Translation<qScalar_>& other) const noexcept{
+    return Translation(_vec4 - other._vec4);
 }
 
 template<typename qScalar_>

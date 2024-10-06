@@ -74,9 +74,8 @@ using namespace dq1::Macro;
     Pose p5 = r1 * p1;
     Pose p6 = p2 * t2;
     r2 * 3;
-    r2 + 3;
     t2 * 3;
-    t2 + 3;
+    t2 + t2;
     p2 * 3;
     p2 + 3;
 
