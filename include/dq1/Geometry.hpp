@@ -32,10 +32,11 @@ using namespace dq1::Macro;
 
 class Geo{
 protected:
-    int _label;
     
 public:
     virtual ~Geo()=default;
+
+    virtual scalar_t distance(const Geo& other) const noexcept = 0;
 
 };
 
@@ -43,11 +44,18 @@ class Point: public Geo{
 protected:
     Vec3 _position;
 public:
+    Point(const Vec3 vec3);
+    Point(scalar_t x=0, scalar_t y=0, scalar_t z=0);
+
+    virtual scalar_t distance(const Geo& other) const noexcept override;
     
 
 };
 
 class Line: public Geo{
+protected:
+
+public:
 
 };
 
