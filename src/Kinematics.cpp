@@ -197,7 +197,7 @@ SerialManipulator::SerialManipulator(const std::string& params_file_path, const 
 
     // Check if the file was opened successfully
     if (!json_file.is_open()) {
-        throw std::runtime_error("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) Could not open the JSON file.");
+        throw std::runtime_error("SerialManipulator(const std::string& , const Vecx& ) Could not open the " + params_file_path + " JSON file.");
     }
 
     // Parse the JSON file into a json object
@@ -214,11 +214,11 @@ SerialManipulator::SerialManipulator(const std::string& params_file_path, const 
 
     size_t DOF = theta.size(); 
 
-    __check_size_inequality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 theta", "DoF", DOF, 0);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 d", "DoF",d.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 a", "DoF",a.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 alpha", "DoF",alpha.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 joint_types", "DoF",joint_types.size(), DOF);
+    __check_size_inequality("SerialManipulator(const std::string& , const Vecx& ) arg0 theta", "DoF", DOF, 0);
+    __check_size_equality("SerialManipulator(const std::string& , const Vecx& ) arg0 d", "DoF",d.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& , const Vecx& ) arg0 a", "DoF",a.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& , const Vecx& ) arg0 alpha", "DoF",alpha.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& , const Vecx& ) arg0 joint_types", "DoF",joint_types.size(), DOF);
     
 
     DHParam DH_params;
@@ -235,10 +235,10 @@ SerialManipulator::SerialManipulator(const std::string& params_file_path, const 
     std::vector<scalar_t> min_joint_velocities = data["joint_limits"]["min_joint_velocities"];
     std::vector<scalar_t> max_joint_velocities = data["joint_limits"]["max_joint_velocities"];
 
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 min_joint_position", "DoF",min_joint_position.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 max_joint_position", "DoF",max_joint_position.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 min_joint_velocities", "DoF",min_joint_velocities.size(), DOF);
-    __check_size_equality("SerialManipulator(const std::string& params_file_path, const Vecx& joint_positions) arg0 max_joint_velocities", "DoF",max_joint_velocities.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& , const Vecx& ) arg0 min_joint_position", "DoF",min_joint_position.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& , const Vecx& ) arg0 max_joint_position", "DoF",max_joint_position.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& , const Vecx& ) arg0 min_joint_velocities", "DoF",min_joint_velocities.size(), DOF);
+    __check_size_equality("SerialManipulator(const std::string& , const Vecx& ) arg0 max_joint_velocities", "DoF",max_joint_velocities.size(), DOF);
 
     // solver_config
     _cfg.translation_priority = data["solver_config"]["translation_priority"];
@@ -402,7 +402,7 @@ void SerialManipulator::_construct(const DHParam& DH_params, const JointLimits& 
     _data.joint_positions = joint_positions;
     _update_kinematics();
 
-    std::cout << "A Kinematics::SerialManipulator constructed!!! DoF = " + std::to_string(DOF) + ".\n" ;
+    std::cout << "Constructed a " + std::to_string(DOF) + "-DoF Kinematics::SerialManipulator.\n" ;
 }
 
 } // namespace kinematics

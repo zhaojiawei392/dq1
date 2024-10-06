@@ -34,7 +34,7 @@ int main()
     pos << 0,0,0,0,0,0;
     
     // Construct a robot
-    dq1::kinematics::SerialManipulator robot("robot1.json", pos);
+    dq1::kinematics::SerialManipulator robot("../examples/robot1.json", pos);
 
     // Set base and effector as default Pose which is 1.
     robot.set_base(Pose());
