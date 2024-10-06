@@ -33,7 +33,12 @@ int main()
     Vec6 pos;
     pos << 0,0,0,0,0,0;
     
-    dq1::kinematics::SerialManipulator robot("../robots/robot1.json", pos);
+    // Construct a robot
+    dq1::kinematics::SerialManipulator robot("robot1.json", pos);
+
+    // Set base and effector as default Pose which is 1.
+    robot.set_base(Pose());
+    robot.set_effector(Pose());
 
     Pose x_init = robot.end_pose();
     scalar_t radius = 0.01;
