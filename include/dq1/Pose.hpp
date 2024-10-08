@@ -31,7 +31,7 @@
 namespace dq1
 {
 
-namespace Pose2
+namespace Template
 {
 
 template <typename T>
