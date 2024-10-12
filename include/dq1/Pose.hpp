@@ -406,6 +406,39 @@ public:
         return this->_arr4.data()+1;
     }
 
+    PureQuaternion& operator+=(const PureQuaternion& other) noexcept {
+        _arr4[0] = 0;  
+        _arr4[1] += other.x(); 
+        _arr4[2] += other.y(); 
+        _arr4[3] += other.z();
+        return *this; 
+    }    
+    PureQuaternion& operator-=(const PureQuaternion& other) noexcept {
+        _arr4[0] = 0;  
+        _arr4[1] -= other.x(); 
+        _arr4[2] -= other.y(); 
+        _arr4[3] -= other.z();
+        return *this; 
+    }
+    template<typename Scalar_> 
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, PureQuaternion&>
+    operator*=(const Scalar_ scalar) noexcept {
+        
+        _arr4[0] = 0;  
+        _arr4[1] *= scalar; 
+        _arr4[2] *= scalar; 
+        _arr4[3] *= scalar; 
+        
+        return *this;
+    }
+
+    // Delete
+    Quaternion& operator+=(const Quaternion& other) noexcept =delete;
+    Quaternion& operator-=(const Quaternion& other) noexcept =delete;
+    Quaternion& operator*=(const Quaternion& other) noexcept =delete;
+    template<typename Scalar_> 
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion&>
+    operator*=(const Scalar_ scalar) noexcept =delete;
     // Defaults
 
             virtual ~PureQuaternion()=default;
@@ -450,6 +483,25 @@ public:
         this->operator=(quat);
         __norm_should_be_one("UnitQuaternion& operator=(const Quaternion&)", *this);
     }
+    inline const qScalar* data() const noexcept {
+        return this->_arr4.data();
+    }
+
+    UnitQuaternion& operator*=(const UnitQuaternion& other) noexcept {
+        _arr4[0] = w()*other.w() - x()*other.x() - y()*other.y() - z()*other.z();  
+        _arr4[1] = x()*other.w() + w()*other.x() - z()*other.y() + y()*other.z(); 
+        _arr4[2] = y()*other.w() + z()*other.x() + w()*other.y() - x()*other.z(); 
+        _arr4[3] = z()*other.w() - y()*other.x() + x()*other.y() + w()*other.z(); 
+        this->normalize();
+        return *this;
+    }
+    // Delete
+    Quaternion& operator+=(const Quaternion& other) noexcept =delete;
+    Quaternion& operator-=(const Quaternion& other) noexcept =delete;
+    Quaternion& operator*=(const Quaternion& other) noexcept =delete;
+    template<typename Scalar_> 
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion&>
+    operator*=(const Scalar_ scalar) noexcept =delete;
 
     // Defaults
             virtual ~UnitQuaternion()=default;
@@ -500,8 +552,22 @@ public:
     inline const qScalar* data() const noexcept {
         return this->_arr4.data()+1;
     }
+    UnitPureQuaternion& operator*=(const UnitPureQuaternion& other) noexcept {
+        _arr4[0] = 0;  
+        _arr4[1] = x()*other.w() + w()*other.x() - z()*other.y() + y()*other.z(); 
+        _arr4[2] = y()*other.w() + z()*other.x() + w()*other.y() - x()*other.z(); 
+        _arr4[3] = z()*other.w() - y()*other.x() + x()*other.y() + w()*other.z(); 
+        this->normalize();
+        return *this;
+    }
 
     // Delete
+    Quaternion& operator+=(const Quaternion& other) noexcept =delete;
+    Quaternion& operator-=(const Quaternion& other) noexcept =delete;
+    Quaternion& operator*=(const Quaternion& other) noexcept =delete;
+    template<typename Scalar_> 
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, Quaternion&>
+    operator*=(const Scalar_ scalar) noexcept =delete;
     UnitPureQuaternion()=delete;
     // Default
                 virtual ~UnitPureQuaternion()=default;
@@ -755,11 +821,31 @@ public:
     : DualQuaternion<qScalar>(dq) {
         __norm_should_be_one("explicit UnitDualQuaternion(const DualQuaternion&)", this->primary());
     }
-    UnitDualQuaternion& operator=(const DualQuaternion<qScalar>& dq) {
+    inline UnitDualQuaternion& operator=(const DualQuaternion<qScalar>& dq) {
         DualQuaternion<qScalar>::operator=(dq);
         __norm_should_be_one("UnitDualQuaternion& operator=(const DualQuaternion&)", this->primary());
     }
 
+    inline UnitDualQuaternion& operator*=(const UnitDualQuaternion& other) noexcept {
+        this->_primary *= other._primary;
+        this->_dual = this->_primary * other._dual + this->_dual * other._primary;
+        __norm_should_be_one("UnitDualQuaternion& operator*=(const UnitDualQuaternion&)", this->primary());
+        return *this;
+    }
+
+    inline UnitDualQuaternion operator*(const UnitDualQuaternion& other) const noexcept {
+        const Quaternion<qScalar> primary_ = this->_primary * other._primary;
+        const Quaternion<qScalar> dual_ = this->_primary * other._dual + this->_dual * other._primary;
+        return UnitDualQuaternion(primary_, dual_);
+    }
+
+    // Delete
+    DualQuaternion& operator+=(const DualQuaternion& other) noexcept =delete;
+    DualQuaternion& operator-=(const DualQuaternion& other) noexcept =delete;
+    DualQuaternion& operator*=(const DualQuaternion& other) noexcept =delete;
+    template<typename Scalar_>
+    std::enable_if_t<std::is_arithmetic_v<Scalar_>, DualQuaternion&> 
+    operator*=(const Scalar_ scalar) noexcept =delete;
     // Default
                 virtual ~UnitDualQuaternion()=default;
                         UnitDualQuaternion(const UnitDualQuaternion& dq)=default;
@@ -810,7 +896,7 @@ public:
     }
 
     template <typename T = qScalar, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-    static Rotation build_from(const UnitAxis& rotate_axis, const qScalar rotate_angle) {
+    explicit Rotation(const UnitAxis& rotate_axis, const qScalar rotate_angle) {
         const qScalar w_ = cos(0.5 * rotate_angle);
         const qScalar sin_ = sin(0.5 * rotate_angle);
         const qScalar x_ = rotate_axis.x() * sin_;
@@ -821,15 +907,24 @@ public:
         return Rotation(uquat);
     }
 
-    static Rotation build_from(const UnitAxis& uaxis1, const UnitAxis& uaxis2) {
-        if ()
-    }    
-    
-    static Rotation build_from(const Rotation& rotation1, const Rotation& rotation2) {
-        if ()
+    inline Rotation& operator*=(const Rotation& other) noexcept {
+        _quat *= other._quat;
+        return *this;
     }
 
-    inline Quaternion<qScalar> quaternion() const noexcept { return _quat; }
+    inline Rotation operator*(const Rotation& other) const noexcept {
+        return Rotation(_quat * other._quat);
+    }
+
+    static Rotation gap_between(const UnitAxis& uaxis1, const UnitAxis& uaxis2) {
+        if ()
+    }    
+
+    inline UnitQuaternion<qScalar> quaternion() const noexcept { return _quat; }
+
+    inline Rotation conj() const noexcept {
+        return Rotation(_quat.conj());
+    }
 
     // Default
         virtual ~Rotation()=default;
@@ -838,7 +933,6 @@ public:
     Rotation& operator=(const Rotation&)=default;
     Rotation& operator=(Rotation&&)=default;
 };
-
 
 template<typename qScalar>
 class Translation {
@@ -865,31 +959,52 @@ public:
     }
 
     inline Translation& active_rotate(const Rotation& rotation) {
-        Quaternion<qScalar> rotation_quat = rotation.quaternion();
+        const Quaternion<qScalar>& rotation_quat = rotation.quaternion();
         _quat = rotation_quat * _quat * rotation_quat.conj();
         return &this;
     }    
     
     inline Translation& passive_rotate(const Rotation& rotation) {
-        Quaternion<qScalar> rotation_quat = rotation.quaternion();
+        const Quaternion<qScalar>& rotation_quat = rotation.quaternion();
         _quat = rotation_quat.conj() * _quat * rotation_quat;
         return &this;
     }
 
     inline Translation active_rotated(const Rotation& rotation) const {
-        Quaternion<qScalar> rotation_quat = rotation.quaternion();
-        Quaternion<qScalar> res = rotation_quat * _quat * rotation_quat.conj();
+        const Quaternion<qScalar>& rotation_quat = rotation.quaternion();
+        const Quaternion<qScalar>& res = rotation_quat * _quat * rotation_quat.conj();
         return Translation(res);
     }    
     
     inline Translation passive_rotated(const Rotation& rotation) const {
-        Quaternion<qScalar> rotation_quat = rotation.quaternion();
-        Quaternion<qScalar> res = rotation_quat.conj() * _quat * rotation_quat;
+        cosnt Quaternion<qScalar>& rotation_quat = rotation.quaternion();
+        const Quaternion<qScalar>& res = rotation_quat.conj() * _quat * rotation_quat;
         return Translation(res);
     }
 
-    inline Quaternion<qScalar> quaternion() const noexcept { return _quat; }
+    inline Translation& operator+=(const Translation& other) noexcept {
+        _quat += other._quat;
+        return *this;
+    }
 
+    inline Translation& operator-=(const Translation& other) noexcept {
+        _quat -= other._quat;
+        return *this;
+    }
+
+    inline Translation operator+(const Translation& other) const noexcept {
+        return Translation(_quat + other._quat);
+    }
+
+    inline Translation operator-(const Translation& other) const noexcept  {
+        return Translation(_quat - other._quat);
+    }
+
+    inline PureQuaternion<qScalar> quaternion() const noexcept { return _quat; }
+
+    inline Translation conj() const noexcept {
+        return Translation(_quat.conj());
+    }
     // Default
         virtual ~Translation()=default;
                 Translation()=default; // {0,0,0}
@@ -897,7 +1012,116 @@ public:
                 Translation(Translation&&)=default;
     Translation& operator=(const Translation&)=default;
     Translation& operator=(Translation&&)=default;
+};   
+
+template<typename qScalar>
+class UnitAxis {
+using Arr3 = Arr<qScalar, 3>;
+using Arr4 = Arr<qScalar, 4>;
+using Arr8 = Arr<qScalar, 8>;
+using Mat3 = Mat<qScalar, 3,3>;
+using Mat4 = Mat<qScalar, 4,4>;
+using Mat8 = Mat<qScalar, 8,8>;
+protected:
+    UnitPureQuaternion<qScalar> _quat; 
+public:
+
+    template <typename T = qScalar, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    explicit UnitAxis(const qScalar x, const qScalar y, const qScalar z)
+    : _quat(x, y, z) {
+
+    }
+
+    template <typename T = qScalar, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    explicit UnitAxis(const Quaternion<qScalar>& quat)
+    : _quat(quat) {
+
+    }
+
+    inline UnitAxis& active_rotate(const Rotation& rotation) {
+        const Quaternion<qScalar>& rotation_quat = rotation.quaternion();
+        _quat = rotation_quat * _quat * rotation_quat.conj();
+        return &this;
+    }    
+    
+    inline UnitAxis& passive_rotate(const Rotation& rotation) {
+        const Quaternion<qScalar>& rotation_quat = rotation.quaternion();
+        _quat = rotation_quat.conj() * _quat * rotation_quat;
+        return &this;
+    }
+
+    inline UnitAxis active_rotated(const Rotation& rotation) const {
+        const Quaternion<qScalar>& rotation_quat = rotation.quaternion();
+        const Quaternion<qScalar>& res = rotation_quat * _quat * rotation_quat.conj();
+        return UnitAxis(res);
+    }    
+    
+    inline UnitAxis passive_rotated(const Rotation& rotation) const {
+        cosnt Quaternion<qScalar>& rotation_quat = rotation.quaternion();
+        const Quaternion<qScalar>& res = rotation_quat.conj() * _quat * rotation_quat;
+        return UnitAxis(res);
+    }
+
+    inline UnitPureQuaternion<qScalar> quaternion() const noexcept { return _quat; }
+
+    inline UnitAxis conj() const noexcept {
+        return UnitAxis(_quat.conj());
+    }
+    // Default
+        virtual ~UnitAxis()=default;
+                UnitAxis()=default; // {0,0,0}
+                UnitAxis(const UnitAxis&)=default;
+                UnitAxis(UnitAxis&&)=default;
+    UnitAxis& operator=(const UnitAxis&)=default;
+    UnitAxis& operator=(UnitAxis&&)=default;
 };    
+
+template<typename qScalar>
+class Pose {
+
+using Arr3 = Arr<qScalar, 3>;
+using Arr4 = Arr<qScalar, 4>;
+using Arr8 = Arr<qScalar, 8>;
+using Mat3 = Mat<qScalar, 3,3>;
+using Mat4 = Mat<qScalar, 4,4>;
+using Mat8 = Mat<qScalar, 8,8>;
+protecte:
+    UnitDualQuaternion<qScalar> _dq;
+public:
+    template <typename T = qScalar, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+    explicit Pose() 
+    : _dq() {
+
+    }
+    explicit Pose(const UnitDualQuaternion& udq) 
+    : _dq(udq) {
+
+    }
+
+    inline Pose& operator*=(const Pose& other) noexcept {
+        _dq *= other._dq;
+    }
+
+    inline Pose operator*(const Pose& other) noexcept {
+        return Pose(_dq * other._dq);
+    }
+
+    template<typename First_, typename... Args_>
+    static Pose build_from(const First_& first, const Args_&... args){
+        return Pose(build_from(first) * build_from(args...));
+    }  
+    static Pose build_from(const Rotation<qScalar_>& rotation){
+        return Pose(rotation);
+    }
+    static Pose build_from(const Translation<qScalar_>& translation){
+        return Pose(Rotation<qScalar_>(1), translation / 2);
+    }
+    static Pose build_from(const Pose& pose){
+        return pose;
+    }
+
+};
+
 }  // namespace Pose
 
 }  // namespace dq1
