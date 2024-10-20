@@ -63,7 +63,7 @@ T square(const T& x) {
     return x * x;
 }
 
-constexpr int PRINT_PRECISION = 18;
+constexpr int PRINT_PRECISION = 12;
 constexpr double FLOAT_OMIT_THRESHOLD = 0.00000001;
 constexpr double FLOAT_ERROR_THRESHOLD = 0.0001;
 constexpr bool VERY_VERBOSE = false;

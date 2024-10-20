@@ -24,7 +24,6 @@
 
 #pragma once
 #include "dq1/Pose.hpp"
-#include "dq1/Pose2.hpp"
 #include "dq1/Kinematics.hpp"
 // #include "dq1/Geometry.hpp"
 // #include "dq1/Solver.hpp"
