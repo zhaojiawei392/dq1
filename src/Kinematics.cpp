@@ -363,11 +363,12 @@ Vecx SerialManipulator::max_joint_velocities() const noexcept {
 void SerialManipulator::_update_kinematics() {
     // Manually calculate the first joint pose and the first col of the pose jacobian
     _data.joint_poses[0] = _joints[0]->fkm(_data.joint_positions[0]);
-    _data.end_pose_jacobian.col(0) = (_data.joint_poses[0].conj() * _data.joint_poses.back()).haminus() * _joints[0]->end_pose_jacobian(_data.joint_positions[0]);
-
-    // Iterately calculate the following joint poses and the last cols of the pose jacobian
     for (size_t i=1; i<DoF(); ++i){
         _data.joint_poses[i] = _data.joint_poses[i-1] * _joints[i]->fkm(_data.joint_positions[i]);
+    }
+    _data.end_pose_jacobian.col(0) = (_data.joint_poses[0].conj() * _data.joint_poses.back()).haminus() * _joints[0]->end_pose_jacobian(_data.joint_positions[0]);
+    // Iterately calculate the following joint poses and the last cols of the pose jacobian
+    for (size_t i=1; i<DoF(); ++i){
         _data.end_pose_jacobian.col(i) = (_data.joint_poses[i].conj() * _data.joint_poses.back()).haminus()
                                          * _data.joint_poses[i-1].hamiplus()
                                          * _joints[i]->end_pose_jacobian(_data.joint_positions[i]);
