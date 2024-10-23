@@ -51,6 +51,7 @@ int main()
         Pose xd = Pose::build_from(offset);
         robot.update(xd);
         std::cout << "translation error: " << robot.end_pose().translation() - xd.translation() << "\n";
+        const auto rjb = robot.query_data().end_rotation_jacobian;
     }
 
 }
